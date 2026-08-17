@@ -196,6 +196,7 @@ export class ThreeHundred {
 		'skolldev',
 		'DanGM96',
 		'possibleo',
+		'dowsprogress',
 		'suprasannaojha',
 	];
 	protected readonly _contributorCountRoundedToNextMultipleOf10 = Math.ceil(this._contributors.length / 10) * 10;

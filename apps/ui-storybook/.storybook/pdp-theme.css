@@ -1,0 +1,246 @@
+@font-face {
+	font-family: 'Progress Sans Text';
+	src: url('../public/fonts/progress-sans/ProgressSansText-Light.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 300;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Progress Sans Text';
+	src: url('../public/fonts/progress-sans/ProgressSansText-Regular.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Progress Sans Text';
+	src: url('../public/fonts/progress-sans/ProgressSansText-Medium.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Progress Sans Text';
+	src: url('../public/fonts/progress-sans/ProgressSansText-Bold.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Progress Sans Text';
+	src: url('../public/fonts/progress-sans/ProgressSansText-ExtraBold.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 800;
+	font-display: swap;
+}
+
+/* `:root.style-pdp` (not plain `.style-pdp`) is required: `tailwind.css`'s own `:root { ... }`
+   block is declared textually after this file is `@import`ed, so at equal specificity the later
+   source wins and silently overrides these tokens (this caused `--primary`/`--radius`/etc. to
+   regress back to Tailwind's defaults). Combining the `:root` pseudo-class with the `.style-pdp`
+   class raises specificity to (0,2,0), beating plain `:root`'s (0,1,0) regardless of source
+   order — mirroring how `.style-pdp.dark` already out-specifies plain `.dark` below. */
+:root.style-pdp {
+	color-scheme: light;
+
+	--font-sans: 'Progress Sans Text', sans-serif;
+	--font-mono: 'Progress Sans Text', monospace;
+	--font-weight-medium: 400;
+	--font-weight-semibold: 500;
+	--font-weight-extrabold: 700;
+	--pdp-prompt-control-px: 1rem;
+	--pdp-prompt-control-py: 1rem;
+	--pdp-placeholder: oklch(0.769 0.015 248); /* design.md Body Tertiary #adb5bd */
+
+	--radius: 0.375rem;
+	--radius-sm: 0.25rem;
+	--radius-md: 0.25rem;
+	--radius-lg: 0.25rem;
+	--radius-xl: 0.25rem;
+	--radius-2xl: 0.375rem;
+	--radius-3xl: 0.375rem;
+	--radius-4xl: 0.5rem;
+
+	--background: oklch(1 0 89.9);
+	--foreground: oklch(0.26 0.004 264.5);
+
+	--card: oklch(1 0 89.9);
+	--card-foreground: oklch(0.26 0.004 264.5);
+
+	--popover: oklch(1 0 89.9);
+	--popover-foreground: oklch(0.26 0.004 264.5);
+
+	--primary: oklch(0.554 0.246 264.1);
+	--primary-foreground: oklch(1 0 89.9);
+
+	--secondary: oklch(0.955 0.003 264.5);
+	--secondary-foreground: oklch(0.26 0.004 264.5);
+
+	--muted: oklch(0.955 0.003 264.5);
+	--muted-foreground: oklch(0.562 0.011 243); /* design.md Body Secondary #6c757d */
+
+	--accent: oklch(0.955 0.003 264.5);
+	--accent-foreground: oklch(0.26 0.004 264.5);
+
+	--destructive: oklch(0.538 0.187 20.4);
+
+	--border: oklch(0.909 0.006 255.5);
+	--input: oklch(0.909 0.006 255.5);
+
+	--ring: oklch(0.493 0.216 264.1);
+
+	--surface: oklch(0.988 0.001 286.4);
+	--surface-foreground: var(--foreground);
+
+	--sidebar: oklch(0.988 0.001 286.4);
+	--sidebar-foreground: oklch(0.26 0.004 264.5);
+	--sidebar-primary: oklch(0.554 0.246 264.1);
+	--sidebar-primary-foreground: oklch(1 0 89.9);
+	--sidebar-accent: oklch(0.955 0.003 264.5);
+	--sidebar-accent-foreground: oklch(0.26 0.004 264.5);
+	--sidebar-border: oklch(0.909 0.006 255.5);
+	--sidebar-ring: oklch(0.493 0.216 264.1);
+}
+
+.style-pdp.dark {
+	color-scheme: dark;
+
+	--font-weight-medium: 400;
+	--font-weight-semibold: 500;
+	--font-weight-extrabold: 700;
+	/* Design.md's dark "Base/body-tertiary-color" (white 60%) reads far brighter here than the
+	   light-mode placeholder does relative to muted-foreground (WCAG contrast ratio ~70% of
+	   muted-foreground's, vs ~45% in light mode) because it's an alpha overlay on a dark
+	   background rather than a literal hex swatch. Dropping to white 45% reproduces the same
+	   relative dimming ratio light mode has, keeping the tertiary tier visually consistent
+	   across themes. */
+	--pdp-placeholder: oklch(1 0 0 / 45%);
+
+	--background: oklch(0.26 0.004 264.5);
+	--foreground: oklch(0.955 0.003 264.5);
+
+	--card: oklch(0.332 0.006 258.4);
+	--card-foreground: oklch(0.955 0.003 264.5);
+
+	--popover: oklch(0.332 0.006 258.4);
+	--popover-foreground: oklch(0.955 0.003 264.5);
+
+	--primary: oklch(0.715 0.147 267.3);
+	--primary-foreground: oklch(0.26 0.004 264.5);
+
+	--secondary: oklch(0.39 0.002 248); /* design.md Dark/Variations/dark hover bg #444546 */
+	--secondary-foreground: oklch(0.955 0.003 264.5);
+
+	--muted: oklch(0.39 0.002 248); /* design.md Dark/Variations/dark hover bg #444546 */
+	--muted-foreground: oklch(1 0 0 / 75%); /* design.md Base/body-secondary-color (white 75%) */
+
+	--accent: oklch(0.296 0.005 248);
+	--accent-foreground: oklch(0.955 0.003 264.5);
+
+	--destructive: oklch(0.635 0.223 20.8);
+
+	--border: oklch(0.434 0.008 255.5);
+	--input: oklch(0.434 0.008 255.5);
+
+	--ring: oklch(0.554 0.246 264.1);
+
+	--surface: oklch(0.332 0.006 258.4);
+	--surface-foreground: var(--foreground);
+
+	--sidebar: oklch(0.332 0.006 258.4);
+	--sidebar-foreground: oklch(0.955 0.003 264.5);
+	--sidebar-primary: oklch(0.715 0.147 267.3);
+	--sidebar-primary-foreground: oklch(0.26 0.004 264.5);
+	--sidebar-accent: oklch(0.296 0.005 248);
+	--sidebar-accent-foreground: oklch(0.955 0.003 264.5);
+	--sidebar-border: oklch(0.434 0.008 255.5);
+	--sidebar-ring: oklch(0.554 0.246 264.1);
+}
+
+.style-pdp .spartan-input-group-input,
+.style-pdp .spartan-input-group-textarea {
+	padding-inline: var(--pdp-prompt-control-px);
+	padding-block: var(--pdp-prompt-control-py);
+}
+
+/* Universal placeholder styling for every native text control (input, textarea,
+   command input, input-group input/textarea) so new controls don't need to be
+   enumerated here. Kept UNLAYERED (matching style-nova.css) so it reliably wins over
+   Tailwind's unlayered `placeholder:text-muted-foreground` utility (both unlayered,
+   this file imported later = wins on source order; a `@layer` wrapper here would lose
+   to any unlayered rule regardless of order). */
+.style-pdp :where(input, textarea)::placeholder {
+	color: var(--pdp-placeholder);
+	font-weight: var(--font-weight-light);
+}
+
+/* PDP weight scale: passive/body/description text drops to Light (300), the lightest
+   weight Progress Sans ships. Headers, form/meta labels (spartan-label, field-title,
+   field-legend, badge, kbd, chips, group-labels, shortcuts, avatar-group-count), and
+   every interactive control (button, tabs/menubar/nav-menu triggers, toggle, accordion
+   trigger, input-group addon/button) are intentionally excluded and keep their current
+   weight — only passive reading/description copy is affected. Typed input/textarea/OTP
+   values are also excluded: they're user-entered content, not passive text, mirroring
+   the placeholder-vs-value distinction above. Uses [data-slot='tabs-content'] rather
+   than `.spartan-tabs-content` because that class is defined in the theme CSS but never
+   actually applied by HlmTabsContent — data-slot is the only stable, real hook. (There's
+   no chart-tooltip component/selector to target at all: `.spartan-chart-tooltip` is
+   dead theme CSS with no corresponding component in this repo, so it's omitted here.) */
+.style-pdp :where(
+	.spartan-accordion-content,
+	.spartan-alert,
+	.spartan-alert-description,
+	.spartan-alert-dialog-description,
+	.spartan-autocomplete-item,
+	.spartan-autocomplete-empty,
+	.spartan-autocomplete-status,
+	.spartan-card,
+	.spartan-card-description,
+	.spartan-combobox-item,
+	.spartan-combobox-empty,
+	.spartan-combobox-status,
+	.spartan-command-input,
+	.spartan-command-empty,
+	.spartan-command-item,
+	.spartan-dialog-content,
+	.spartan-dialog-description,
+	.spartan-drawer-content,
+	.spartan-drawer-description,
+	.spartan-dropdown-menu-item,
+	.spartan-dropdown-menu-checkbox-item,
+	.spartan-dropdown-menu-radio-item,
+	.spartan-empty-description,
+	.spartan-empty-content,
+	.spartan-hover-card-content,
+	.spartan-message,
+	.spartan-bubble-content,
+	.spartan-bubble-reactions,
+	.spartan-attachment-description,
+	.spartan-native-select,
+	.spartan-popover-content,
+	.spartan-select-item,
+	.spartan-sheet-content,
+	.spartan-sheet-description,
+	.spartan-sidebar-group-content,
+	.spartan-table,
+	.spartan-table-caption,
+	[data-slot='tabs-content'],
+	.spartan-tooltip-content,
+	.spartan-breadcrumb-page,
+	.spartan-field-description,
+	.spartan-field-error,
+	.spartan-item-description
+) {
+	font-weight: var(--font-weight-light);
+}
+
+/* Calendar weekday header cells (Su/Mo/Tu...) have no dedicated class to hook into;
+   scoped to brnCalendarGrid tables to avoid matching unrelated data-table headers
+   (spartan-table-head), which must stay at their current weight. */
+.style-pdp table[brncalendargrid] th[scope='col'] {
+	font-weight: var(--font-weight-light);
+}
