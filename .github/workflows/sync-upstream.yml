@@ -1,0 +1,37 @@
+name: sync-upstream
+
+# Keeps this fork's `main` up to date with spartan-ng/spartan's `main`.
+# Only fast-forwards - if `main` has diverged with fork-only commits (e.g.
+# local feature work merged directly into main), the job stops without
+# force-pushing so nothing here is ever silently overwritten or lost.
+
+on:
+  schedule:
+    - cron: '0 13 * * *' # daily at 13:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.repository != 'spartan-ng/spartan'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: git remote add upstream https://github.com/spartan-ng/spartan.git && git fetch upstream main
+
+      - name: Fast-forward main to upstream/main
+        run: |
+          if git merge-base --is-ancestor HEAD upstream/main; then
+            git merge --ff-only upstream/main
+            git push origin main
+            echo "Synced main to upstream/main ($(git rev-parse --short upstream/main))."
+          else
+            echo "::warning::main has diverged from upstream/main (local-only commits present) - skipping to avoid losing fork work. Run 'git sync-main' locally to review and merge manually."
+          fi
