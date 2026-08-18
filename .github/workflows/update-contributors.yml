@@ -11,10 +11,16 @@ permissions:
 jobs:
   update-contributors:
     runs-on: ubuntu-latest
+    # The `secrets` context is not allowed in a step-level `if:` (GitHub Actions rejects the whole
+    # workflow file at parse time if it is - see contexts reference: `jobs.<job_id>.steps.if` only
+    # allows github/needs/strategy/matrix/job/runner/env/vars/steps/inputs). Job-level `env:` DOES
+    # allow `secrets`, so compute the flag there and gate the step on `env.*` instead.
+    env:
+      HAS_APP_CREDS: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
     steps:
       - name: Generate app token
         id: app-token
-        if: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
+        if: ${{ env.HAS_APP_CREDS == 'true' }}
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.APP_ID }}

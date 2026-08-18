@@ -137,12 +137,18 @@ jobs:
       issues: write # semantic-release comments on released issues
       pull-requests: write # semantic-release comments on released PRs
       id-token: write # npm trusted publishing (OIDC)
+    # The `secrets` context is not allowed in a step-level `if:` (GitHub Actions rejects the whole
+    # workflow file at parse time if it is - see contexts reference: `jobs.<job_id>.steps.if` only
+    # allows github/needs/strategy/matrix/job/runner/env/vars/steps/inputs). Job-level `env:` DOES
+    # allow `secrets`, so compute the flag there and gate the step on `env.*` instead.
+    env:
+      HAS_APP_CREDS: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
     steps:
       # Mint a short-lived token from the release GitHub App. It is a bypass actor on the branch
       # ruleset, so semantic-release can push the release commit + tag even when PRs are required.
       - name: Generate app token
         id: app-token
-        if: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
+        if: ${{ env.HAS_APP_CREDS == 'true' }}
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.APP_ID }}
@@ -199,10 +205,14 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    # See the comment on the `release` job's `env:` above - `secrets` is not valid in a step-level
+    # `if:`, so the flag is computed here at job level instead.
+    env:
+      HAS_APP_CREDS: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
     steps:
       - name: Generate app token
         id: app-token
-        if: ${{ secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != '' }}
+        if: ${{ env.HAS_APP_CREDS == 'true' }}
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.APP_ID }}
