@@ -1,0 +1,133 @@
+import { isPlatformBrowser } from '@angular/common';
+import {
+	afterNextRender,
+	contentChild,
+	DestroyRef,
+	Directive,
+	effect,
+	inject,
+	Injector,
+	input,
+	numberAttribute,
+	PLATFORM_ID,
+	signal,
+	untracked,
+} from '@angular/core';
+import { classes } from '<%- importAlias %>/utils';
+import { NgScrollbar } from 'ngx-scrollbar';
+import { provideHlmConversation } from './hlm-conversation-token';
+
+/** Distance (px) from the bottom of the viewport still considered "at the bottom". */
+const DEFAULT_AT_BOTTOM_THRESHOLD = 32;
+
+/**
+ * Wraps a scrollable list of messages, automatically sticking to the bottom as new content is
+ * appended or streams in, and tracking whether the viewport is currently at the bottom (exposed
+ * via `isAtBottom()`, consumed by e.g. `HlmConversationScrollButton`). Mirrors the AI Elements
+ * `Conversation` component.
+ *
+ * This is a positioned wrapper around a nested `ng-scrollbar` (see `<%- importAlias %>/scroll-area`)
+ * rather than the scrollable element itself - that keeps overlay UI like the scroll button fixed in
+ * place instead of scrolling away with the message content. Pass `appearance="compact"` on the
+ * `ng-scrollbar` so it overlays the viewport instead of reserving layout space for the scrollbar
+ * track - otherwise the content (e.g. right-aligned bubbles) visibly shifts left whenever the
+ * scrollbar appears/disappears:
+ *
+ * ```html
+ * <div hlmConversation class="h-[600px]">
+ *   <ng-scrollbar hlm appearance="compact" class="h-full">
+ *     <div hlmConversationContent>...</div>
+ *   </ng-scrollbar>
+ *   <button hlmConversationScrollButton></button>
+ * </div>
+ * ```
+ */
+@Directive({
+	selector: '[hlmConversation],hlm-conversation',
+	providers: [provideHlmConversation(HlmConversation)],
+	host: {
+		'data-slot': 'conversation',
+	},
+})
+export class HlmConversation {
+	private readonly _platformId = inject(PLATFORM_ID);
+	private readonly _destroyRef = inject(DestroyRef);
+	private readonly _injector = inject(Injector);
+
+	/** The nested `ng-scrollbar` viewport this conversation tracks and scrolls. */
+	private readonly _scrollbar = contentChild(NgScrollbar, { descendants: true });
+
+	/** Distance (px) from the bottom within which the conversation is still considered "at bottom". */
+	public readonly atBottomThreshold = input(DEFAULT_AT_BOTTOM_THRESHOLD, { transform: numberAttribute });
+
+	private readonly _isAtBottom = signal(true);
+	/** Whether the viewport is currently scrolled to (or within `atBottomThreshold` of) the bottom. */
+	public readonly isAtBottom = this._isAtBottom.asReadonly();
+
+	constructor() {
+		// Deliberately no `flex-1`/growth utility here: `flex-basis: 0` (from `flex-1`) would
+		// override an explicit height utility (e.g. `class="h-[600px]"`) applied by the consumer
+		// unless their own ancestor is already a height-bound flex layout. Consumers that *do* want
+		// Conversation to grow to fill an already height-bound flex-col parent can add `flex-1`
+		// themselves via the `class` input, same as any other spartan-* directive.
+		classes(() => 'spartan-conversation relative flex min-h-0 flex-col overflow-hidden');
+
+		if (!isPlatformBrowser(this._platformId)) {
+			return;
+		}
+
+		let scrollListenerCleanup: (() => void) | undefined;
+
+		effect(() => {
+			const scrollbar = this._scrollbar();
+
+			// Re-run whenever the viewport content grows/shrinks (new messages, streaming text, resize).
+			scrollbar?.adapter.contentDimension();
+			scrollbar?.adapter.viewportDimension();
+
+			untracked(() => {
+				if (!scrollbar) {
+					return;
+				}
+
+				scrollListenerCleanup ??= this._listenForManualScroll(scrollbar);
+
+				const wasAtBottom = this._isAtBottom();
+				// Defer until layout has settled from this render tick before measuring/scrolling.
+				queueMicrotask(() => {
+					if (wasAtBottom) {
+						this.scrollToBottom(false);
+					}
+					this._recomputeAtBottom(scrollbar);
+				});
+			});
+		});
+
+		this._destroyRef.onDestroy(() => scrollListenerCleanup?.());
+	}
+
+	/** Scrolls the viewport to the bottom. */
+	public scrollToBottom(smooth = true): void {
+		void this._scrollbar()?.adapter.scrollTo({ bottom: 0, duration: smooth ? 300 : 0 });
+	}
+
+	private _listenForManualScroll(scrollbar: NgScrollbar): () => void {
+		const handleScroll = () => this._recomputeAtBottom(scrollbar);
+
+		afterNextRender(
+			() => {
+				const viewport = scrollbar.adapter.viewportElement;
+				viewport.addEventListener('scroll', handleScroll, { passive: true });
+			},
+			{ injector: this._injector },
+		);
+
+		return () => scrollbar.adapter.viewportElement?.removeEventListener('scroll', handleScroll);
+	}
+
+	private _recomputeAtBottom(scrollbar: NgScrollbar): void {
+		const { scrollTop, contentHeight, clientHeight } = scrollbar.adapter;
+		const distanceFromBottom = contentHeight - clientHeight - scrollTop;
+		this._isAtBottom.set(distanceFromBottom <= this.atBottomThreshold());
+	}
+}

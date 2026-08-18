@@ -174,6 +174,16 @@
 			"@angular/cdk": ">=21.0.0 <23.0.0"
 		}
 	},
+	"conversation": {
+		"name": "conversation",
+		"peerDependencies": {
+			"@angular/core": ">=21.0.0 <23.0.0",
+			"ngx-scrollbar": "^19.1.5",
+			"@ng-icons/core": ">=32.0.0 <34.0.0",
+			"@ng-icons/lucide": ">=32.0.0 <34.0.0",
+			"clsx": "^2.1.1"
+		}
+	},
 	"date-picker": {
 		"name": "date-picker",
 		"peerDependencies": {

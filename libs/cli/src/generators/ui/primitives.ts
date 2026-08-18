@@ -19,6 +19,7 @@ export type Primitive =
 	| 'combobox'
 	| 'command'
 	| 'context-menu'
+	| 'conversation'
 	| 'date-picker'
 	| 'dialog'
 	| 'drawer'
