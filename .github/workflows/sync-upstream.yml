@@ -1,9 +1,16 @@
 name: sync-upstream
 
-# Keeps this fork's `main` up to date with spartan-ng/spartan's `main`.
-# Only fast-forwards - if `main` has diverged with fork-only commits (e.g.
-# local feature work merged directly into main), the job stops without
-# force-pushing so nothing here is ever silently overwritten or lost.
+# `main` is this fork's permanent product branch and is expected to diverge from
+# spartan-ng/spartan forever (it carries our own components/changes) - it is
+# intentionally NOT synced here. Instead, `upstream-main` is a read-only mirror
+# of spartan-ng/spartan's `main`, always hard-reset to match it exactly. To pull
+# upstream fixes into product code, diff/merge from `upstream-main` locally
+# (see `git upstream-diff` / `git sync-upstream-branch` aliases in AGENTS.md).
+#
+# The second job is a visible tripwire: it fails loudly (not a buried
+# ::warning::) if `main` ever stops containing all of upstream/main's history,
+# which is this repo's #1 historical failure mode (feature branches merged
+# into main silently drifting it away from upstream, see PR #1704 postmortem).
 
 on:
   schedule:
@@ -14,8 +21,27 @@ permissions:
   contents: write
 
 jobs:
-  sync:
+  mirror-upstream-main:
     if: github.repository != 'spartan-ng/spartan'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: upstream-main
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: git remote add upstream https://github.com/spartan-ng/spartan.git && git fetch upstream main
+
+      - name: Hard-reset upstream-main to upstream/main
+        run: |
+          git reset --hard upstream/main
+          git push --force-with-lease origin upstream-main
+          echo "upstream-main mirrored to upstream/main ($(git rev-parse --short upstream/main))."
+
+  check-product-main-drift:
+    if: github.repository != 'spartan-ng/spartan'
+    needs: mirror-upstream-main
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -26,12 +52,12 @@ jobs:
       - name: Fetch upstream
         run: git remote add upstream https://github.com/spartan-ng/spartan.git && git fetch upstream main
 
-      - name: Fast-forward main to upstream/main
+      - name: Fail loudly if main is missing upstream commits
         run: |
-          if git merge-base --is-ancestor HEAD upstream/main; then
-            git merge --ff-only upstream/main
-            git push origin main
-            echo "Synced main to upstream/main ($(git rev-parse --short upstream/main))."
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo "OK: main contains all of upstream/main's history ($(git rev-parse --short upstream/main))."
           else
-            echo "::warning::main has diverged from upstream/main (local-only commits present) - skipping to avoid losing fork work. Run 'git sync-main' locally to review and merge manually."
+            missing=$(git rev-list --count HEAD..upstream/main)
+            echo "::error::main is missing $missing commit(s) from upstream/main. Merge/cherry-pick the needed fixes from the 'upstream-main' branch into main - see AGENTS.md."
+            exit 1
           fi
