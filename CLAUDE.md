@@ -46,6 +46,13 @@ CI (`.github/workflows/ci.yml`) runs 5 jobs: `commitlint`, `format-and-lint`, `b
   `npx commitlint --from=<last-pushed-sha> --to=HEAD --verbose` (merge commits are auto-ignored by
   commitlint's default merge-pattern detection, so they never need a valid scope/type).
 
+## Workflow jobs must have `timeout-minutes`
+
+Every job in `.github/workflows/*.yml` must set `timeout-minutes` (see AGENTS.md). Without it a
+hung step blocks the job - and anything that `needs:` it - for up to GitHub's 6-hour default with
+no automatic recovery (this happened to `release / verify-libs`). Size new timeouts with headroom
+over observed real duration; never delete the field to silence a legitimate timeout failure.
+
 ## Commit messages (Conventional Commits, enforced by commitlint with `failOnWarnings`)
 
 See `commitlint.config.cjs` and `CONTRIBUTING.md`.
@@ -54,11 +61,16 @@ See `commitlint.config.cjs` and `CONTRIBUTING.md`.
 - Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`,
   `chore`, `revert`.
 - If you include a scope it MUST be one of the `scope-enum` values (the component names plus
-  `cli`, `nx`, `repo`, `trpc`, `typography`). NOTE: `app` is NOT a valid scope - omit the scope
-  for docs-app changes rather than inventing one.
+  `cli`, `nx`, `repo`, `trpc`, `typography`). NOTE: `app` and `skills` are NOT valid scopes -
+  omit the scope, or use `repo` for repo-tooling/meta/docs-process changes, rather than
+  inventing one. Check first: `grep -n "'<scope>'" commitlint.config.cjs`.
 - A blank line is required between the subject and the body, and before the footer.
 - No line in the message may exceed 100 characters.
 - Do NOT add a `Co-Authored-By` (or any AI) trailer.
+- If a bad scope already reached `fork/main`, do NOT amend + force-push to fix it: rewriting an
+  already-merged commit changes its SHA, which invalidates the "before" SHA GitHub recorded for
+  that push event and makes the _next_ CI run fail with `Invalid revision range` instead. Accept
+  that one historical run as unfixable and prevent it going forward instead.
 
 ## Pull requests
 

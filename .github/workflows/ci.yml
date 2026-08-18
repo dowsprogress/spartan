@@ -18,6 +18,7 @@ env:
 
 jobs:
   commitlint:
+    timeout-minutes: 10
     # Skip release commits pushed to main (already validated during the release), but always run on
     # pull_request so this required check reports and never blocks a promotion/sync PR whose tip is a
     # `chore(release):` commit. Replaces the old `[skip ci]` token, which skipped PR checks too.
@@ -51,6 +52,7 @@ jobs:
           fi
 
   format-and-lint:
+    timeout-minutes: 15
     if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     # Staggered after commitlint so the nrwl/nx-set-shas archive download in this job does not
     # hit GitHub's codeload endpoint at the exact same moment as the build/unit/e2e jobs.
@@ -72,6 +74,7 @@ jobs:
         run: pnpm nx affected -t lint --parallel=3
 
   build:
+    timeout-minutes: 20
     if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     steps:
@@ -84,6 +87,7 @@ jobs:
         run: pnpm nx affected -t build --parallel=1
 
   unit:
+    timeout-minutes: 20
     if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     # No longer gated on `build`: vitest runs against source, so unit tests start immediately and
@@ -115,6 +119,7 @@ jobs:
         run: pnpm nx affected -t test --parallel=3
 
   e2e:
+    timeout-minutes: 20
     if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     # Not gated on `build`: the e2e suite runs cypress against storybook (its cypress executor's

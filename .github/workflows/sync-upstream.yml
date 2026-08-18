@@ -22,6 +22,7 @@ permissions:
 
 jobs:
   mirror-upstream-main:
+    timeout-minutes: 10
     if: github.repository != 'spartan-ng/spartan'
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +41,7 @@ jobs:
           echo "upstream-main mirrored to upstream/main ($(git rev-parse --short upstream/main))."
 
   check-product-main-drift:
+    timeout-minutes: 10
     if: github.repository != 'spartan-ng/spartan'
     needs: mirror-upstream-main
     runs-on: ubuntu-latest

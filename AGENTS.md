@@ -94,8 +94,41 @@ plain instructions in this file/`instructions.md`, or propose adding a new real 
 - Storybook/e2e-relevant work: `pnpm nx affected -t e2e --exclude=trpc-app-e2e` (CI's `e2e` job runs
   Cypress against Storybook; this is the 5th CI job and is easy to miss)
 
+## GitHub Actions workflow jobs (required — prevents indefinite hangs)
+
+- Every job in every `.github/workflows/*.yml` file MUST set `timeout-minutes`. None had one
+  historically, which let a single hung step (e.g. a stalled Playwright/network install) block a
+  job — and everything that `needs:` it — for up to GitHub's 6-hour default, with no automatic
+  recovery (this happened to `release / verify-libs`).
+- When adding a new job, size the timeout to its real-world duration with headroom (roughly
+  2-3x observed wall-clock), not a generous guess: 5 min for trivial aggregator/gate jobs, 10-15
+  min for install+lint/git-only jobs, 20 min for build/test/smoke-matrix jobs.
+- If a job starts legitimately needing more time, raise its `timeout-minutes` explicitly in the
+  same commit — never remove the field to "fix" a timeout failure.
+
 ## Commit/PR conventions
 
 - Follow Conventional Commits and repo commitlint rules from `CONTRIBUTING.md` and `commitlint.config.cjs`.
-- Use valid scopes only; omit scope if no valid scope applies.
+- Use valid scopes only; omit scope if no valid scope applies. Do not invent a new scope for a
+  one-off change — check `commitlint.config.cjs`'s `scope-enum` first and reuse the closest
+  existing scope (e.g. `repo` for repo-tooling/meta/docs-process changes). Before writing a commit
+  message with a scope, grep for it: `grep -n "'<scope>'" commitlint.config.cjs`. If it's not
+  there, either use `repo`/omit the scope, or add the scope to _both_ `commitlint.config.cjs` and
+  `CONTRIBUTING.md`'s scope list in the same commit and confirm with the user first.
+- Before pushing, reproduce the CI check exactly: `npx commitlint --from=<last-pushed-sha>
+--to=HEAD --verbose` (see CLAUDE.md). Do this for every commit that carries a scope, not just
+  ones touching helm components.
+
+## History rewrites on `fork/main` (critical — avoid amend + force-push after merge)
+
+- Do not `git commit --amend` + force-push a commit that is already merged into `fork/main` to
+  "fix" a red check (e.g. a bad commitlint scope). GitHub's CI computes the commitlint diff range
+  from the push event's recorded before/after SHAs; rewriting history invalidates the old
+  "before" SHA, which makes the _next_ CI run fail with `Invalid revision range` — a second,
+  harder-to-diagnose failure caused by the fix itself.
+- If a bad commit message already reached `fork/main`, treat that specific CI run as permanently
+  historical/unfixable and move on — it does not block anything without an open PR/branch
+  protection. Prevent the class of bug going forward instead (see scope-checking rule above).
+- Only amend + force-push an already-pushed commit on `fork/main` if explicitly instructed to do
+  so, understanding it will not turn today's failing run green — it only fixes future pushes.
 - Fill `.github/PULL_REQUEST_TEMPLATE.md` completely when creating PRs.

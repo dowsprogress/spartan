@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   update-contributors:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     # The `secrets` context is not allowed in a step-level `if:` (GitHub Actions rejects the whole
     # workflow file at parse time if it is - see contexts reference: `jobs.<job_id>.steps.if` only

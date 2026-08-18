@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   build:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -29,6 +30,7 @@ jobs:
           path: dist/storybook/ui-storybook
 
   deploy:
+    timeout-minutes: 10
     needs: build
     runs-on: ubuntu-latest
     environment:

@@ -44,6 +44,7 @@ jobs:
   # release on both. This mirrors .github/workflows/cli-smoke.yml so the release isn't bottlenecked
   # on the smoke cells running serially in a single runner (~20 min -> roughly the slowest cell).
   verify-libs:
+    timeout-minutes: 20
     if: ${{ (github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')) && !(github.event_name == 'workflow_dispatch' && inputs.dry-run) }}
     runs-on: ubuntu-latest
     steps:
@@ -72,6 +73,7 @@ jobs:
   # NX_BASE/NX_HEAD, isSmokeAffected() runs rather than skips (apps/cli-smoke/src/support/affected.ts).
   # Keep the cell list in sync with apps/cli-smoke/src/matrix.ts and .github/workflows/cli-smoke.yml.
   verify-smoke:
+    timeout-minutes: 20
     if: ${{ (github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')) && !(github.event_name == 'workflow_dispatch' && inputs.dry-run) }}
     runs-on: ubuntu-latest
     strategy:
@@ -106,6 +108,7 @@ jobs:
   # Single gate the release depends on: green only when both verify jobs passed (or were skipped for a
   # dry-run preview). always() so it still reports a status when the matrix fans out or is skipped.
   verify:
+    timeout-minutes: 5
     needs: [verify-libs, verify-smoke]
     if: ${{ always() && (github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')) }}
     runs-on: ubuntu-latest
@@ -127,6 +130,7 @@ jobs:
           done
 
   release:
+    timeout-minutes: 15
     needs: [verify]
     # Run when verify passed (push / real dispatch) or was skipped (dry-run preview), but never
     # when it failed or was cancelled.
@@ -194,6 +198,7 @@ jobs:
   # (a code hotfix touching prerelease-only lines) stops the automation and opens a PR to resolve by
   # hand rather than guessing.
   backmerge:
+    timeout-minutes: 10
     needs: [release]
     # Run after any REAL release: plain pushes, and a workflow_dispatch with dry-run=false. Skip
     # dry-run previews. On push events `inputs` is absent, so `!inputs.dry-run` evaluates to true;

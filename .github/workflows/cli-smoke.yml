@@ -27,6 +27,7 @@ concurrency:
 
 jobs:
   setup-matrix:
+    timeout-minutes: 20
     # Skip release commits pushed to main; always run on pull_request so `cli-smoke result` reports
     # (a `[skip ci]` token would skip the whole workflow, leaving the required check pending forever).
     if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
@@ -84,6 +85,7 @@ jobs:
         run: pnpm nx run cli-smoke:smoke --testNamePattern="${{ matrix.cell }} "
 
   drift-guard:
+    timeout-minutes: 10
     # Runs in parallel with the cells (does not delay them). Fails if matrix.ts declares a cell that the
     # static matrix above does not cover, so the hardcoded list cannot silently go stale. Only the matrix
     # source or this workflow can introduce drift, so it installs only when one of those changed.
@@ -124,6 +126,7 @@ jobs:
     # runs, this always reports a status (it never sits pending), and it is green quickly on PRs that
     # don't affect the CLI (every cell short-circuits to a pass).
     name: cli-smoke result
+    timeout-minutes: 5
     needs: [setup-matrix, drift-guard]
     # always() so it still reports when cells short-circuit, but carry the same release-commit guard so
     # it isn't left evaluating skipped needs into a failure on a `chore(release):` push to main.
