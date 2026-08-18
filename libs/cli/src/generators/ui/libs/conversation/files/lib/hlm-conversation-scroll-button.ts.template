@@ -1,0 +1,52 @@
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideArrowDown } from '@ng-icons/lucide';
+import { HlmButton, provideBrnButtonConfig } from '<%- importAlias %>/button';
+import { hlm } from '<%- importAlias %>/utils';
+import type { ClassValue } from 'clsx';
+import { injectHlmConversation } from './hlm-conversation-token';
+
+/**
+ * Floating button that appears when the conversation is scrolled away from the bottom, and
+ * scrolls back to the bottom when clicked. Mirrors the AI Elements `ConversationScrollButton`
+ * (outlined icon button by default). Must be used within an `hlmConversation` container. Hidden
+ * automatically once the conversation is back at the bottom.
+ */
+@Component({
+	// eslint-disable-next-line @angular-eslint/component-selector
+	selector: 'button[hlmConversationScrollButton]',
+	imports: [NgIcon],
+	providers: [provideIcons({ lucideArrowDown }), provideBrnButtonConfig({ variant: 'outline', size: 'icon' })],
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	hostDirectives: [{ directive: HlmButton, inputs: ['variant', 'size'] }],
+	host: {
+		type: 'button',
+		'data-slot': 'conversation-scroll-button',
+		'[class]': '_computedClass()',
+		'[attr.hidden]': '_isHidden() ? true : null',
+		'(click)': 'scrollToBottom()',
+	},
+	template: `
+		<ng-content>
+			<ng-icon name="lucideArrowDown" size="1rem" />
+		</ng-content>
+	`,
+})
+export class HlmConversationScrollButton {
+	private readonly _conversation = injectHlmConversation();
+
+	protected readonly _isHidden = computed(() => this._conversation?.isAtBottom() ?? true);
+
+	public readonly buttonClass = input<ClassValue>('');
+
+	protected readonly _computedClass = computed(() =>
+		hlm(
+			'spartan-conversation-scroll-button absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full',
+			this.buttonClass(),
+		),
+	);
+
+	protected scrollToBottom(): void {
+		this._conversation?.scrollToBottom();
+	}
+}

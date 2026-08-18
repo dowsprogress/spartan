@@ -21,6 +21,7 @@ export const primitiveDependencies: Record<Primitive, Primitive[]> = {
 	combobox: ['utils', 'input-group', 'button'],
 	command: ['utils', 'button', 'input-group', 'dialog'],
 	'context-menu': ['utils', 'dropdown-menu'],
+	conversation: ['utils', 'scroll-area', 'button'],
 	'date-picker': ['utils', 'calendar', 'popover', 'input-group'],
 	dialog: ['utils', 'button'],
 	drawer: ['utils'],
