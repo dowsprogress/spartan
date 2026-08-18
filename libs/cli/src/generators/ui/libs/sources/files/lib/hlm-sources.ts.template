@@ -20,6 +20,6 @@ import { classes } from '<%- importAlias %>/utils';
 })
 export class HlmSources {
 	constructor() {
-		classes(() => 'spartan-sources not-prose mb-4 block text-xs text-primary');
+		classes(() => 'spartan-sources not-prose text-primary mb-4 block text-xs');
 	}
 }
