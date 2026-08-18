@@ -28,6 +28,7 @@ module.exports = {
 				'combobox',
 				'command',
 				'context-menu',
+				'conversation',
 				'data-table',
 				'date-picker',
 				'dialog',

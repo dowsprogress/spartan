@@ -3495,6 +3495,50 @@ exports[`generate-ui-docs executor > produces stable output 1`] = `
       },
     },
   },
+  "conversation": {
+    "helm": {
+      "HlmConversation": {
+        "inputs": [
+          {
+            "name": "atBottomThreshold",
+            "required": false,
+            "type": "unknown",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmConversation],hlm-conversation",
+      },
+      "HlmConversationContent": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmConversationContent],hlm-conversation-content",
+      },
+      "HlmConversationScrollButton": {
+        "inputs": [
+          {
+            "name": "buttonClass",
+            "required": false,
+            "type": "ClassValue",
+          },
+          {
+            "name": "variant",
+            "required": false,
+            "type": "ButtonVariants['variant']",
+          },
+          {
+            "name": "size",
+            "required": false,
+            "type": "ButtonVariants['size']",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "button[hlmConversationScrollButton]",
+      },
+    },
+  },
   "date-picker": {
     "brain": {
       "BrnDateInput": {
