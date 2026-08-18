@@ -8,6 +8,21 @@ Conventions for this nx workspace, written to avoid the common CI failures.
   (`spartan-ng/spartan` upstream). Push/merge/PR instructions target `fork` unless told otherwise.
   See `AGENTS.md` for the full rule (that file wins on any conflict).
 
+## Adding a new helm component: required steps (do all of these, not just the code)
+
+Missing either of these two steps is what caused CI to fail (`commitlint` + `unit`) after the
+`conversation` component was first added - do both in the _same_ commit that adds the component:
+
+1. **Register the scope.** Add the new component's kebab-case name to the `scope-enum` array in
+   `commitlint.config.cjs` (keep it alphabetically sorted) AND to the scope list in
+   `CONTRIBUTING.md` under "Primitives". Without this, any `feat(<scope>): ...` / `fix(<scope>): ...`
+   commit for the new component fails `commitlint` CI.
+2. **Regenerate the docs snapshot.** `libs/tools/src/executors/docs/generate-ui-docs` has a
+   snapshot test (`executor.spec.ts`) that dumps the generated docs metadata for _every_ component.
+   Adding a component, or changing any component's public inputs/outputs/selector, makes that
+   snapshot stale and fails `tools:test` (part of the `unit` CI job). Run
+   `npx nx test tools -- -u` after such changes and commit the updated `.snap` file.
+
 ## Before pushing: run the CI checks locally
 
 CI (`.github/workflows/ci.yml`) runs the steps below. Run them locally first so a push does not
@@ -19,6 +34,14 @@ bounce on something that was avoidable:
   including ones a linter/formatter made, and re-check before committing.
 - `pnpm run test`
 - `pnpm run build`
+- The `unit` CI job runs `pnpm nx affected -t test --parallel=3`, NOT just the project(s) you
+  touched directly. Changes to shared files (e.g. `tsconfig.base.json`, `libs/cli/*`) can mark many
+  more projects as affected than expected. Reproduce exactly what CI runs before pushing:
+  `npx nx affected -t test --parallel=3 --base=<last-pushed-sha> --head=HEAD` (use
+  `npx nx show projects --affected --base=<last-pushed-sha>` to see which projects will run).
+- Reproduce the `commitlint` CI check directly for your commit range before pushing:
+  `npx commitlint --from=<last-pushed-sha> --to=HEAD --verbose` (merge commits are auto-ignored by
+  commitlint's default merge-pattern detection, so they never need a valid scope/type).
 
 ## Commit messages (Conventional Commits, enforced by commitlint with `failOnWarnings`)
 
