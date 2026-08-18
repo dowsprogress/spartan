@@ -25,8 +25,8 @@ Missing either of these two steps is what caused CI to fail (`commitlint` + `uni
 
 ## Before pushing: run the CI checks locally
 
-CI (`.github/workflows/ci.yml`) runs the steps below. Run them locally first so a push does not
-bounce on something that was avoidable:
+CI (`.github/workflows/ci.yml`) runs 5 jobs: `commitlint`, `format-and-lint`, `build`, `unit`,
+`e2e`. Run the equivalents below locally first so a push does not bounce on something avoidable:
 
 - `pnpm run lint`
 - `pnpm nx format:write` then `pnpm nx format:check --base=origin/main` - the `format-and-lint`
@@ -34,6 +34,9 @@ bounce on something that was avoidable:
   including ones a linter/formatter made, and re-check before committing.
 - `pnpm run test`
 - `pnpm run build`
+- If the change touches Storybook stories/e2e-relevant behavior: `pnpm nx affected -t e2e
+--exclude=trpc-app-e2e --parallel=1` - the `e2e` job runs Cypress against Storybook
+  (`ui-storybook:static-storybook`) and is easy to forget since it's independent of `build`/`unit`.
 - The `unit` CI job runs `pnpm nx affected -t test --parallel=3`, NOT just the project(s) you
   touched directly. Changes to shared files (e.g. `tsconfig.base.json`, `libs/cli/*`) can mark many
   more projects as affected than expected. Reproduce exactly what CI runs before pushing:

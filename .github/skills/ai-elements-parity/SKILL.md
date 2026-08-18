@@ -1,4 +1,15 @@
-# Skill: AI Elements parity (React -> Angular)
+---
+name: ai-elements-parity
+description: >
+  Implement or review Spartan Angular components/patterns for behavior and structural parity with
+  the AI Elements React reference (https://elements.ai-sdk.dev). Use this skill whenever a task
+  involves building, extending, or reviewing chat/AI UI patterns in Spartan (conversation, message,
+  chain-of-thought, checkpoint, context, inline-citation, queue, task, tool, or similar AI Elements
+  components) — map requested behavior to existing Spartan primitives first, preserve state/theme
+  parity, and document any intentional divergence from the React reference.
+---
+
+# AI Elements parity (React -> Angular)
 
 ## Purpose
 

@@ -1,4 +1,13 @@
-# Skill: GitHub Pages deploy (storybook-pages)
+---
+name: pages-deploy
+description: >
+  Deploy or troubleshoot Storybook publishing to GitHub Pages via the storybook-pages workflow.
+  Use this skill whenever asked to deploy Storybook, publish docs to Pages, check a Pages deploy
+  status, or diagnose a failed/blocked storybook-pages run (including environment protection
+  rejections).
+---
+
+# GitHub Pages deploy (storybook-pages)
 
 ## Purpose
 

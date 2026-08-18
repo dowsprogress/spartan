@@ -1,4 +1,13 @@
-# Skill: Nx validation gates
+---
+name: nx-validation-gates
+description: >
+  Run the correct Nx validation commands before considering any Spartan change complete or ready
+  to commit/push. Use this skill whenever code, stories, or Storybook themes/tokens change — it
+  covers lint, format, targeted tests/build, and the Storybook build check, using the smallest
+  command set that actually validates the changed scope.
+---
+
+# Nx validation gates
 
 ## Purpose
 

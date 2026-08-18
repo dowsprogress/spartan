@@ -1,58 +1,19 @@
 # Spartan implementation playbook
 
-Practical workflow for contributors implementing UI and design-system changes.
+Sequential workflow for implementing UI/design-system changes. The rules themselves live in
+`AGENTS.md` (that file wins on any conflict) - this file only orders them into steps and adds the
+procedure that isn't covered there.
 
-## 1) Start with references
-
-1. Confirm user goal and affected stories/screens.
-2. If AI Elements-related, open the React reference first:
-   - https://elements.ai-sdk.dev
-   - https://elements.ai-sdk.dev/components/attachments
-3. Map requested behavior to existing Spartan primitives before writing new markup/styles.
-
-## 2) Build by composition
-
-1. Prefer existing helm/registry building blocks.
-2. Compose larger patterns from existing elements (input group, button, addon, dialog, command, etc.).
-3. Use semantic tokens; avoid hardcoded colors/radius/spacing.
-
-## 3) Theme safely
-
-1. Keep light/dark token hierarchy consistent (primary/secondary/tertiary).
-2. Validate interactive states in both modes.
-3. If changing token values, check all impacted components (not just the current story).
-
-## 4) Parity and divergence
-
-1. Match React AI Elements behavior by default.
-2. If Angular constraints force divergence, document:
-   - difference,
-   - reason,
-   - user impact.
-
-## 4.1) Uncertainty escalation (mandatory)
-
-1. If unsure which Spartan primitive/variant maps to requested behavior, pause and state the ambiguity.
-2. Propose the closest existing primitives and composition options.
-3. Do not introduce a new primitive/variant/pattern until direction is confirmed.
-
-## 4.2) Decision logging
-
-1. For every intentional divergence from AI Elements reference, log:
-   - what differs,
-   - why it differs,
-   - impact on UX/behavior,
-   - where it is implemented (file/path).
-2. Include this note in the PR description when a PR is created.
-
-## 5) Validation checklist
-
-1. Format and lint.
-2. Run targeted tests/build for changed behavior.
-3. For Storybook/theme changes, build Storybook and check relevant stories in light/dark.
-
-## 6) Release discipline
-
-1. Do not commit/push/PR unless explicitly instructed.
-2. Keep diffs scoped; avoid unrelated file drift.
-3. When instructed to create PR, include behavior delta and risk notes.
+1. Confirm the user's goal and the affected stories/screens.
+2. If AI Elements-related, read the React reference first (see AGENTS.md "External reference")
+   before writing any markup/styles.
+3. Map the request to existing Spartan primitives; compose per AGENTS.md "Composition-first rule".
+   If the mapping is unclear, stop and escalate per AGENTS.md "If component mapping is unclear"
+   before creating anything new.
+4. Implement, following AGENTS.md "Theming and cascade guardrails" for any token/theme changes.
+5. For any intentional divergence from the React reference, log: what differs, why, the UX
+   impact, and where it's implemented (file/path). Include this note in the PR description when a
+   PR is created.
+6. Validate per AGENTS.md "Required checks before completion".
+7. Release (commit/push/PR) only on explicit instruction, per AGENTS.md "Delivery and release
+   control".

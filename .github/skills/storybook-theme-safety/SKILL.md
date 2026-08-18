@@ -1,4 +1,14 @@
-# Skill: Storybook theme safety
+---
+name: storybook-theme-safety
+description: >
+  Change theme tokens, dark-mode overrides, or Storybook cascade-sensitive CSS without introducing
+  regressions. Use this skill whenever a task touches PDP/light/dark token values, semantic token
+  tiers, or selector specificity in Storybook — it enforces the repo's known-fragile guardrails
+  (token layering, `:root.style-pdp` vs `.style-pdp.dark`, separate placeholder/muted tiers) and
+  requires light/dark + interactive-state verification before the change is done.
+---
+
+# Storybook theme safety
 
 ## Purpose
 
