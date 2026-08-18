@@ -3,6 +3,7 @@
 Conventions for this nx workspace, written to avoid the common CI failures.
 
 ## Remote target
+
 - Always work against the `fork` remote (`dowsprogress/spartan`), never `origin`
   (`spartan-ng/spartan` upstream). Push/merge/PR instructions target `fork` unless told otherwise.
   See `AGENTS.md` for the full rule (that file wins on any conflict).

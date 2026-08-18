@@ -15,7 +15,7 @@ export class HlmSourcesContent {
 	constructor() {
 		classes(
 			() =>
-				'spartan-sources-content mt-3 flex w-fit flex-col gap-2 outline-none data-[state=closed]:hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2',
+				'spartan-sources-content data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2 mt-3 flex w-fit flex-col gap-2 outline-none data-[state=closed]:hidden',
 		);
 	}
 }

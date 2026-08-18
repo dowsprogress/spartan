@@ -34,7 +34,5 @@ export class HlmSource {
 
 	public readonly sourceClass = input<ClassValue>('');
 
-	protected readonly _computedClass = computed(() =>
-		hlm('spartan-source flex items-center gap-2', this.sourceClass()),
-	);
+	protected readonly _computedClass = computed(() => hlm('spartan-source flex items-center gap-2', this.sourceClass()));
 }

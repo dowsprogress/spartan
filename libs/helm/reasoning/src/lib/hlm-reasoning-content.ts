@@ -11,7 +11,7 @@ export class HlmReasoningContent {
 	constructor() {
 		classes(
 			() =>
-				'spartan-reasoning-content mt-4 block font-light text-muted-foreground text-sm outline-none data-[state=closed]:hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2',
+				'spartan-reasoning-content text-muted-foreground data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2 mt-4 block text-sm font-light outline-none data-[state=closed]:hidden',
 		);
 	}
 }
