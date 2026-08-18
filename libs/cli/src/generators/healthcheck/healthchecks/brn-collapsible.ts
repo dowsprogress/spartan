@@ -11,11 +11,20 @@ export const brainCollapsibleHealthcheck: Healthcheck = {
 				return;
 			}
 
-			// skip HlmCollapsible itself
+			// skip HlmCollapsible itself, and other helm components that legitimately compose the
+			// Brain collapsible primitive under the hood (Reasoning, Sources) rather than using the
+			// deprecated <brn-collapsible> element directly.
 			if (
 				file.endsWith('hlm-collapsible.ts') ||
 				file.endsWith('hlm-collapsible-trigger.ts') ||
-				file.endsWith('hlm-collapsible-content.ts')
+				file.endsWith('hlm-collapsible-content.ts') ||
+				file.endsWith('hlm-reasoning.ts') ||
+				file.endsWith('hlm-reasoning-trigger.ts') ||
+				file.endsWith('hlm-reasoning-content.ts') ||
+				file.endsWith('hlm-source.ts') ||
+				file.endsWith('hlm-sources.ts') ||
+				file.endsWith('hlm-sources-trigger.ts') ||
+				file.endsWith('hlm-sources-content.ts')
 			) {
 				return;
 			}
