@@ -9,7 +9,7 @@ export class HlmMessageAvatar {
 	constructor() {
 		classes(
 			() =>
-				'spartan-message-avatar flex w-fit shrink-0 items-center justify-center self-end overflow-hidden group-has-data-[slot=message-footer]/message:-translate-y-8',
+				'spartan-message-avatar col-start-1 row-start-1 flex w-fit shrink-0 items-center justify-center self-end overflow-hidden group-data-[align=end]/message:col-start-2',
 		);
 	}
 }

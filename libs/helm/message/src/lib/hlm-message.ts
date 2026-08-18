@@ -16,6 +16,12 @@ export class HlmMessage {
 	public readonly align = input<MessageAlign>('start');
 
 	constructor() {
-		classes(() => 'spartan-message group/message relative flex w-full min-w-0 data-[align=end]:flex-row-reverse');
+		classes(
+			() =>
+				// 2 explicit row tracks (bubble row, optional footer row) let `HlmMessageContent` opt
+				// into `grid-rows-subgrid` so the avatar can align to just the bubble row - see its
+				// class comment for why.
+				'spartan-message group/message relative grid w-full min-w-0 grid-cols-[auto_1fr] grid-rows-[auto_auto] data-[align=end]:grid-cols-[1fr_auto]',
+		);
 	}
 }
