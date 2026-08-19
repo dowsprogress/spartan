@@ -133,10 +133,10 @@ describe('dialog--default', () => {
 				.findByText(/close nested dialog/i)
 				.click();
 
-			// eslint-disable-next-line cypress/no-unnecessary-waiting
-			cy.wait(100);
-
-			cy.get('.cdk-overlay-backdrop').click({ force: true });
+			// Wait for the closed dialog's backdrop to be removed before clicking the remaining one -
+			// CDK removes it asynchronously (exit animation), so a fixed wait can race under CI load and
+			// leave 2 backdrops in the DOM when the assertion below runs.
+			cy.get('.cdk-overlay-backdrop').should('have.length', 1).click({ force: true });
 
 			cy.findAllByText(/open dialog/i).should('have.length', 1);
 			cy.findAllByText(/open dialog/i).should('have.focus');
@@ -234,10 +234,11 @@ describe('dialog--dynamic-component', () => {
 				.findByText(/close nested dialog/i)
 				.click();
 
-			// eslint-disable-next-line cypress/no-unnecessary-waiting
-			cy.wait(100);
-
-			cy.get('.cdk-overlay-backdrop').click({ force: true });
+			// Wait for the closed dialog's backdrop to be removed before clicking the remaining one -
+			// CDK removes it asynchronously (exit animation), so a fixed wait can race under CI load and
+			// leave 2 backdrops in the DOM when the assertion below runs (this is the failure observed
+			// in CI: "cy.click() can only be called on a single element... contained 2 elements").
+			cy.get('.cdk-overlay-backdrop').should('have.length', 1).click({ force: true });
 
 			cy.findAllByText(/open dialog/i).should('have.length', 1);
 			cy.findAllByText(/open dialog/i).should('have.focus');
