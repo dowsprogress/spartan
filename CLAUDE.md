@@ -53,6 +53,14 @@ hung step blocks the job - and anything that `needs:` it - for up to GitHub's 6-
 no automatic recovery (this happened to `release / verify-libs`). Size new timeouts with headroom
 over observed real duration; never delete the field to silence a legitimate timeout failure.
 
+## `release` job only runs for real on `spartan-ng/spartan` (see AGENTS.md)
+
+The `release` job in `release.yml` is gated with `github.repository == 'spartan-ng/spartan'`.
+Without this, every push to `fork/main` runs `semantic-release`, which attempts a real
+`npm publish` of `@spartan-ng/brain`/`cli`/`mcp` - the fork has no publish rights to that npm
+scope, so this fails 100% of the time with a 404, not a fixable/flaky error. Do not remove this
+guard; `verify-libs`/`verify-smoke` still run and validate the fork's build/test/smoke.
+
 ## Commit messages (Conventional Commits, enforced by commitlint with `failOnWarnings`)
 
 See `commitlint.config.cjs` and `CONTRIBUTING.md`.

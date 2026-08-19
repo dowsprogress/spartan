@@ -106,6 +106,24 @@ plain instructions in this file/`instructions.md`, or propose adding a new real 
 - If a job starts legitimately needing more time, raise its `timeout-minutes` explicitly in the
   same commit — never remove the field to "fix" a timeout failure.
 
+## Releasing only happens on the canonical repo (critical — prevents guaranteed npm publish failures)
+
+- `.github/workflows/release.yml`'s `release` job is gated with
+  `github.repository == 'spartan-ng/spartan'`. Do not remove this guard.
+- Without it, every push to `fork/main` runs `semantic-release`, which attempts a real
+  `npm publish` of `@spartan-ng/brain`/`cli`/`mcp` to the public npm registry. The fork has no
+  publish rights to the `@spartan-ng` scope, so this **always** fails with a 404
+  ("could not be found or you do not have permission to access it") — it is not a flaky or
+  fixable failure, it is structurally guaranteed to fail on any non-upstream repo.
+- `verify-libs`/`verify-smoke`/`verify` still run on the fork (useful — they validate the
+  publishable libs build/lint/test/smoke cleanly) and are unaffected by this guard.
+- `backmerge` needs `release`; when `release` is skipped (fork), `backmerge` is automatically
+  skipped too by GitHub Actions' default `needs` success semantics — no extra guard required
+  there.
+- If you ever need to test the actual publish step from a fork, use `workflow_dispatch` with
+  `dry-run: true` (semantic-release computes the release without publishing) rather than removing
+  the repository guard.
+
 ## Commit/PR conventions
 
 - Follow Conventional Commits and repo commitlint rules from `CONTRIBUTING.md` and `commitlint.config.cjs`.
