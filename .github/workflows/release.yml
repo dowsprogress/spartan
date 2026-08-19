@@ -44,7 +44,9 @@ jobs:
   # release on both. This mirrors .github/workflows/cli-smoke.yml so the release isn't bottlenecked
   # on the smoke cells running serially in a single runner (~20 min -> roughly the slowest cell).
   verify-libs:
-    timeout-minutes: 20
+    # 20 -> 25: the Playwright install retry loop below can spend up to ~9 min (3 x 180s) if the apt
+    # mirror is stuck before it gives up, on top of the normal install + lint + build + test.
+    timeout-minutes: 25
     if: ${{ (github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')) && !(github.event_name == 'workflow_dispatch' && inputs.dry-run) }}
     runs-on: ubuntu-latest
     steps:
@@ -60,7 +62,21 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: playwright-${{ runner.os }}-
       - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        # --with-deps shells out to apt, which occasionally hangs indefinitely on a stuck Ubuntu
+        # mirror with zero output. `timeout` bounds each attempt so a hung mirror fails fast and gets
+        # retried instead of burning the whole job's timeout budget (see ci.yml's identical step for
+        # the incident this fixes).
+        run: |
+          attempt=1
+          until timeout 180 pnpm exec playwright install --with-deps chromium; do
+            if [ "$attempt" -ge 3 ]; then
+              echo "::error::playwright install --with-deps failed/hung after $attempt attempts (likely a stuck apt mirror)"
+              exit 1
+            fi
+            echo "::warning::playwright install --with-deps attempt $attempt failed or hung past 180s; retrying"
+            attempt=$((attempt + 1))
+            sleep 10
+          done
       - name: Lint
         run: pnpm run lint
       - name: Build publishable libs

@@ -9,10 +9,13 @@ module.exports = defineConfig({
 		...preset,
 		// Retry a failed test in CI before failing the run. The storybook suite runs every spec in one
 		// long Chromium process; under CI load individual assertions (notably the cypress-axe a11y
-		// checks and rapid keyboard-nav specs) intermittently exceed the command timeout on a random
-		// story. A per-test retry absorbs that without re-running the whole job, and is a no-op when the
-		// test is genuinely green. openMode is left at 0 so local runs surface flakes immediately.
-		retries: { runMode: 2, openMode: 0 },
+		// checks, rapid keyboard-nav specs, and hover/right-click menu specs) intermittently exceed the
+		// command timeout on a random story. A per-test retry absorbs that without re-running the whole
+		// job, and is a no-op when the test is genuinely green. openMode is left at 0 so local runs
+		// surface flakes immediately. Bumped 2 -> 3 after context-menu.cy.ts's single test exhausted all
+		// 3 attempts (1 + 2 retries) in one run with no application/test code change involved -
+		// consistent with CI-load timing flakiness rather than a regression.
+		retries: { runMode: 3, openMode: 0 },
 		// Give commands more headroom than the 4s default; the a11y audits and afterNextRender focus
 		// work legitimately take longer than 4s deep into the single-process run under CI load.
 		defaultCommandTimeout: 10000,

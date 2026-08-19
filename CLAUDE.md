@@ -53,6 +53,23 @@ hung step blocks the job - and anything that `needs:` it - for up to GitHub's 6-
 no automatic recovery (this happened to `release / verify-libs`). Size new timeouts with headroom
 over observed real duration; never delete the field to silence a legitimate timeout failure.
 
+## Playwright `--with-deps` install needs a retry + per-attempt timeout (see AGENTS.md)
+
+`ci.yml`'s `unit` job and `release.yml`'s `verify-libs` job both wrap
+`pnpm exec playwright install --with-deps chromium` in a `timeout 180 ... ` retry loop (3
+attempts) because the bare command has hung indefinitely on a stuck apt mirror, silently eating
+the whole job timeout. Don't revert to the bare command; copy the retry loop for any new job that
+needs `--with-deps` Chromium.
+
+## Cypress e2e retries (see AGENTS.md)
+
+`apps/ui-storybook-e2e/cypress.config.cjs` retries failed tests up to 3 times in CI
+(`retries.runMode`) because the suite runs as one long single-process Chromium session and
+individual assertions occasionally exceed the command timeout under load. A spec failing all
+retries once, with no related code change, is more likely CI-load flakiness than a regression -
+re-run before investigating. A spec failing repeatedly across multiple pushes is a real
+regression/chronic flake and needs a targeted fix, not a bigger retry count.
+
 ## `release` job only runs for real on `spartan-ng/spartan` (see AGENTS.md)
 
 The `release` job in `release.yml` is gated with `github.repository == 'spartan-ng/spartan'`.

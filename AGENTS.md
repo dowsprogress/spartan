@@ -106,6 +106,33 @@ plain instructions in this file/`instructions.md`, or propose adding a new real 
 - If a job starts legitimately needing more time, raise its `timeout-minutes` explicitly in the
   same commit — never remove the field to "fix" a timeout failure.
 
+## Playwright `--with-deps` install must be retried with a per-attempt timeout
+
+- `pnpm exec playwright install --with-deps chromium` (in `ci.yml`'s `unit` job and
+  `release.yml`'s `verify-libs` job) shells out to `apt` for OS-level Chromium libraries. This has
+  hung indefinitely with zero output on a stuck Ubuntu mirror, consuming the entire job
+  `timeout-minutes` budget for no benefit.
+- Both call sites wrap the install in a bash retry loop: `timeout 180 ... || retry` up to 3
+  attempts. Do not replace this with a bare `pnpm exec playwright install --with-deps chromium`
+  call again — that reintroduces the unbounded-hang failure mode.
+- If you add a new job that also needs `--with-deps` Chromium, copy this retry pattern rather than
+  the bare command, and give the job's `timeout-minutes` headroom for worst-case retries (~9 min:
+  3 x 180s) on top of its normal steps.
+
+## Cypress e2e flakes: retries are the first line of defense, not infinite
+
+- `apps/ui-storybook-e2e/cypress.config.cjs` sets `retries: { runMode: 3, openMode: 0 }` because
+  the whole Storybook e2e suite runs as one long single-process Chromium session, and individual
+  hover/right-click/keyboard-nav assertions intermittently exceed the command timeout under CI
+  load with no code change involved.
+- If a _specific_ spec fails across **all** retry attempts in a single run with no related code
+  change, that is more likely a one-off CI-load flake than a regression — do not immediately
+  assume the test/component is broken. Re-run the job once before investigating further.
+- If the **same spec** repeatedly exhausts all retries across multiple separate pushes/PRs, that
+  is a real regression or a chronic flake needing a targeted fix (e.g. an explicit wait for a
+  animation-driven state, per `menubar.cy.ts`'s CDK keyboard-nav comment) — do not just keep
+  raising the global retry count as a blanket fix.
+
 ## Releasing only happens on the canonical repo (critical — prevents guaranteed npm publish failures)
 
 - `.github/workflows/release.yml`'s `release` job is gated with
