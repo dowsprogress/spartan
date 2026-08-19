@@ -125,7 +125,7 @@ plain instructions in this file/`instructions.md`, or propose adding a new real 
   `pnpm exec playwright install --with-deps chromium` call — that reintroduces the unbounded-hang
   failure mode.
 - If you add a new job that also needs `--with-deps` Chromium, copy both the `Configure apt network
-  timeouts` step and the retry-loop pattern, and give the job's `timeout-minutes` headroom for
+timeouts` step and the retry-loop pattern, and give the job's `timeout-minutes` headroom for
   worst-case retries (~9 min: 3 x 180s) on top of its normal steps.
 
 ## Cypress e2e flakes: retries are the first line of defense, not infinite
