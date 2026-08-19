@@ -199,7 +199,7 @@ function registerDependencies(tree: Tree, options: HlmBaseGeneratorSchema): Gene
 	const { dependencies, devDependencies } = filterUnregisteredDependencies(
 		tree,
 		buildDependencyArray(tree, options, cdkVersion),
-		buildDevDependencyArray(),
+		buildDevDependencyArray(options),
 	);
 	if (Object.keys(dependencies).length === 0 && Object.keys(devDependencies).length === 0) {
 		return undefined;

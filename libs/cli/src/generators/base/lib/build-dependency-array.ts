@@ -2,7 +2,7 @@ import { type Tree } from '@nx/devkit';
 import { major } from 'semver';
 import { getCliPackageVersion, getInstalledPackageVersion } from '../../../utils/version-utils';
 import type { HlmBaseGeneratorSchema } from '../schema';
-import { NG_ICONS_VERSION, TAILWIND_MERGE_VERSION, TW_ANIMATE_CSS } from '../versions';
+import { NG_ICONS_VERSION, PRISMJS_TYPES_VERSION, TAILWIND_MERGE_VERSION, TW_ANIMATE_CSS } from '../versions';
 
 export function buildDependencyArray(tree: Tree, options: HlmBaseGeneratorSchema, cdkVersion: string) {
 	let dependencies: Record<string, string> = {
@@ -34,8 +34,12 @@ export function buildDependencyArray(tree: Tree, options: HlmBaseGeneratorSchema
 	return dependencies;
 }
 
-export function buildDevDependencyArray() {
-	return {
+export function buildDevDependencyArray(options?: Pick<HlmBaseGeneratorSchema, 'name'>) {
+	const devDependencies: Record<string, string> = {
 		'tw-animate-css': TW_ANIMATE_CSS,
 	};
+	if (options?.name === 'message') {
+		devDependencies['@types/prismjs'] = PRISMJS_TYPES_VERSION;
+	}
+	return devDependencies;
 }
