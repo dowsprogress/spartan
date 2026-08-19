@@ -1,0 +1,12 @@
+import { Directive } from '@angular/core';
+import { classes } from '@spartan-ng/helm/utils';
+
+@Directive({
+	selector: '[hlmChatHeader],hlm-chat-header',
+	host: { 'data-slot': 'chat-header' },
+})
+export class HlmChatHeader {
+	constructor() {
+		classes(() => 'spartan-chat-header flex max-w-full min-w-0 items-center group-has-data-[variant=ghost]/chat:px-0');
+	}
+}

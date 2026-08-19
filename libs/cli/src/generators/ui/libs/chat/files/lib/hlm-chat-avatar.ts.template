@@ -1,0 +1,15 @@
+import { Directive } from '@angular/core';
+import { classes } from '<%- importAlias %>/utils';
+
+@Directive({
+	selector: '[hlmChatAvatar],hlm-chat-avatar',
+	host: { 'data-slot': 'chat-avatar' },
+})
+export class HlmChatAvatar {
+	constructor() {
+		classes(
+			() =>
+				'spartan-chat-avatar col-start-1 row-start-1 flex w-fit shrink-0 items-center justify-center self-end overflow-hidden group-data-[align=end]/chat:col-start-2',
+		);
+	}
+}

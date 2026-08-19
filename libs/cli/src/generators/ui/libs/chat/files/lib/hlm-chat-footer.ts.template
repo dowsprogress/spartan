@@ -1,0 +1,15 @@
+import { Directive } from '@angular/core';
+import { classes } from '<%- importAlias %>/utils';
+
+@Directive({
+	selector: '[hlmChatFooter],hlm-chat-footer',
+	host: { 'data-slot': 'chat-footer' },
+})
+export class HlmChatFooter {
+	constructor() {
+		classes(
+			() =>
+				'spartan-chat-footer flex max-w-full min-w-0 items-center group-has-data-[variant=ghost]/chat:px-0 group-data-[align=end]/chat:justify-end',
+		);
+	}
+}

@@ -124,6 +124,12 @@
 			"embla-carousel-angular": ">=21.0.0 <23.0.0"
 		}
 	},
+	"chat": {
+		"name": "chat",
+		"peerDependencies": {
+			"@angular/core": ">=21.0.0 <23.0.0"
+		}
+	},
 	"checkbox": {
 		"name": "checkbox",
 		"peerDependencies": {
@@ -311,12 +317,6 @@
 			"@angular/core": ">=21.0.0 <23.0.0",
 			"@spartan-ng/brain": "1.4.0",
 			"@angular/cdk": ">=21.0.0 <23.0.0"
-		}
-	},
-	"message": {
-		"name": "message",
-		"peerDependencies": {
-			"@angular/core": ">=21.0.0 <23.0.0"
 		}
 	},
 	"native-select": {

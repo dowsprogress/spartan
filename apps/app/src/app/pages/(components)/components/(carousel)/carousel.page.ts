@@ -191,7 +191,7 @@ export const routeMeta: RouteMeta = {
 			<spartan-ui-api-docs docType="helm" />
 
 			<spartan-page-bottom-nav>
-				<spartan-page-bottom-nav-link href="checkbox" label="Checkbox" />
+				<spartan-page-bottom-nav-link href="chat" label="Chat" />
 				<spartan-page-bottom-nav-link direction="previous" href="card" label="Card" />
 			</spartan-page-bottom-nav>
 		</section>

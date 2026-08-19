@@ -2167,6 +2167,52 @@ exports[`generate-ui-docs executor > produces stable output 1`] = `
       },
     },
   },
+  "chat": {
+    "helm": {
+      "HlmChat": {
+        "inputs": [
+          {
+            "name": "align",
+            "required": false,
+            "type": "ChatAlign",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChat],hlm-chat",
+      },
+      "HlmChatAvatar": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatAvatar],hlm-chat-avatar",
+      },
+      "HlmChatContent": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatContent],hlm-chat-content",
+      },
+      "HlmChatFooter": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatFooter],hlm-chat-footer",
+      },
+      "HlmChatGroup": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatGroup],hlm-chat-group",
+      },
+      "HlmChatHeader": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatHeader],hlm-chat-header",
+      },
+    },
+  },
   "checkbox": {
     "brain": {
       "BrnCheckbox": {
