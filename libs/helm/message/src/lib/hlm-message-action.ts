@@ -1,0 +1,47 @@
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { BrnTooltip, BrnTooltipPosition, provideBrnTooltipDefaultOptions } from '@spartan-ng/brain/tooltip';
+import { HlmButton, provideBrnButtonConfig } from '@spartan-ng/helm/button';
+import {
+	DEFAULT_TOOLTIP_CONTENT_CLASSES,
+	DEFAULT_TOOLTIP_SVG_CLASS,
+	tooltipPositionVariants,
+} from '@spartan-ng/helm/tooltip';
+import { hlm } from '@spartan-ng/helm/utils';
+
+@Component({
+	selector: 'button[hlm-message-action], button[hlmMessageAction]',
+	providers: [
+		provideBrnButtonConfig({ variant: 'ghost', size: 'icon-sm' }),
+		// Mirrors `HlmTooltip`'s styling defaults. Composed against `BrnTooltip` directly (rather
+		// than through `HlmTooltip`) because Angular's `hostDirectives` input forwarding only
+		// resolves one level deep, and `HlmTooltip`'s inputs are themselves forwarded from `BrnTooltip`.
+		provideBrnTooltipDefaultOptions({
+			svgClasses: DEFAULT_TOOLTIP_SVG_CLASS,
+			tooltipContentClasses: DEFAULT_TOOLTIP_CONTENT_CLASSES,
+			arrowClasses: (position: BrnTooltipPosition) => hlm(tooltipPositionVariants({ position })),
+		}),
+	],
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	hostDirectives: [
+		{ directive: HlmButton, inputs: ['variant', 'size'] },
+		// `BrnTooltip` already no-ops when its tooltip text is empty, so binding an optional
+		// `tooltip` input straight through gives us AI Elements' "only show a tooltip when one was
+		// provided" behavior for free, without needing a separate `tooltipDisabled` input.
+		{ directive: BrnTooltip, inputs: ['brnTooltip: tooltip', 'position', 'hideDelay', 'showDelay'] },
+	],
+	host: {
+		type: 'button',
+		'data-slot': 'message-action',
+	},
+	template: `
+		<ng-content />
+		<span class="sr-only">{{ _accessibleLabel() }}</span>
+	`,
+})
+export class HlmMessageAction {
+	/** Accessible label. Falls back to the tooltip text when not provided. */
+	public readonly label = input<string>();
+	public readonly tooltip = input<string>();
+
+	protected readonly _accessibleLabel = computed(() => this.label() ?? this.tooltip() ?? '');
+}

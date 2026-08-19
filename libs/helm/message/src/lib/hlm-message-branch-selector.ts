@@ -1,0 +1,23 @@
+import { Directive, inject } from '@angular/core';
+import { HlmButtonGroup } from '@spartan-ng/helm/button-group';
+import { classes } from '@spartan-ng/helm/utils';
+import { HlmMessageBranch } from './hlm-message-branch';
+
+@Directive({
+	selector: '[hlmMessageBranchSelector],hlm-message-branch-selector',
+	hostDirectives: [HlmButtonGroup],
+	host: {
+		'data-slot': 'message-branch-selector',
+		// Mirrors AI Elements' `MessageBranchSelector`, which renders `null` when there's nothing to switch between.
+		'[class.hidden]': '_isHidden()',
+	},
+})
+export class HlmMessageBranchSelector {
+	private readonly _branch = inject(HlmMessageBranch);
+
+	protected readonly _isHidden = () => this._branch.totalBranches() <= 1;
+
+	constructor() {
+		classes(() => 'spartan-message-branch-selector w-fit');
+	}
+}

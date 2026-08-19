@@ -208,6 +208,7 @@
 		"peerDependencies": {
 			"@angular/core": ">=21.0.0 <23.0.0",
 			"@spartan-ng/brain": "1.4.0",
+			"marked": ">=15.0.0 <16.0.0",
 			"@angular/cdk": ">=21.0.0 <23.0.0",
 			"@angular/common": ">=21.0.0 <23.0.0",
 			"@ng-icons/core": ">=32.0.0 <34.0.0",
@@ -319,6 +320,18 @@
 			"@angular/cdk": ">=21.0.0 <23.0.0"
 		}
 	},
+	"message": {
+		"name": "message",
+		"peerDependencies": {
+			"@angular/core": ">=21.0.0 <23.0.0",
+			"@spartan-ng/brain": "1.4.0",
+			"@angular/cdk": ">=21.0.0 <23.0.0",
+			"@ng-icons/core": ">=32.0.0 <34.0.0",
+			"@ng-icons/lucide": ">=32.0.0 <34.0.0",
+			"prismjs": "^1.29.0",
+			"marked": ">=15.0.0 <16.0.0"
+		}
+	},
 	"native-select": {
 		"name": "native-select",
 		"peerDependencies": {
@@ -357,7 +370,8 @@
 		"peerDependencies": {
 			"@angular/cdk": ">=21.0.0 <23.0.0",
 			"@angular/core": ">=21.0.0 <23.0.0",
-			"@spartan-ng/brain": "1.4.0"
+			"@spartan-ng/brain": "1.4.0",
+			"marked": ">=15.0.0 <16.0.0"
 		}
 	},
 	"progress": {

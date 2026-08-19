@@ -47,6 +47,7 @@ module.exports = {
 				'marker',
 				'mcp',
 				'menubar',
+				'message',
 				'native-select',
 				'navigation-menu',
 				'pagination',

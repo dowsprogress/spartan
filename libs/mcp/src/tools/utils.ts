@@ -48,6 +48,7 @@ export const KNOWN_COMPONENTS: string[] = [
 	'label',
 	'marker',
 	'menubar',
+	'message',
 	'native-select',
 	'navigation-menu',
 	'pagination',

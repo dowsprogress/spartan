@@ -1,0 +1,18 @@
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { HlmButtonGroupText } from '<%- importAlias %>/button-group';
+import { HlmMessageBranch } from './hlm-message-branch';
+
+@Component({
+	selector: 'div[hlm-message-branch-page], div[hlmMessageBranchPage]',
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	hostDirectives: [HlmButtonGroupText],
+	host: { 'data-slot': 'message-branch-page' },
+	template: `
+		{{ _label() }}
+	`,
+})
+export class HlmMessageBranchPage {
+	private readonly _branch = inject(HlmMessageBranch);
+
+	protected readonly _label = computed(() => `${this._branch.currentBranch() + 1} of ${this._branch.totalBranches()}`);
+}
