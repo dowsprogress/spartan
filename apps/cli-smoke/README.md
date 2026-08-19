@@ -46,6 +46,18 @@ Tailwind is fixed at v4. Add or remove combinations in `src/matrix.ts`. When a s
 from `libs/registry/src/styles/style.ts`, update the `styleCells` list in `src/matrix.ts` (and the matching
 `style-*` entries in `.github/workflows/cli-smoke.yml`).
 
+## Shelling out: always async, never `execSync`
+
+`src/utils/workspace.ts`'s `run()`/`capture()` helpers use async `spawn`, not `execSync`/any other
+synchronous `child_process` call. Vitest 3's worker↔main-process RPC heartbeat has a hardcoded,
+non-configurable 60-second timeout (see vitest-dev/vitest issues 6511 and 8164); a synchronous call
+blocks this worker's entire event loop for as long as the child process runs (each `create-nx-workspace`
+scaffold, `pnpm add`, generator run, or build here regularly takes well over 60s), so the worker can never
+service that heartbeat and Vitest fails the cell with a false-positive
+`[vitest-worker]: Timeout calling "onTaskUpdate"` even though every assertion passed. If you add a new
+helper that shells out here, `await run(...)`/`await capture(...)` (or add a new async helper following
+the same pattern) — do not reach for `execSync` even for a "quick" command.
+
 ## Running
 
 ```bash

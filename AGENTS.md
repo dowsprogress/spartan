@@ -172,6 +172,13 @@ timeouts` step and the retry-loop pattern, and give the job's `timeout-minutes` 
 - Before pushing, reproduce the CI check exactly: `npx commitlint --from=<last-pushed-sha>
 --to=HEAD --verbose` (see CLAUDE.md). Do this for every commit that carries a scope, not just
   ones touching helm components.
+- When merging a branch, let git write the merge commit message (its default `Merge branch 'x'
+into y` / `Merge pull request #N from ...` text) — commitlint auto-exempts default merge
+  messages via its built-in merge-pattern detection. Do not pass a custom `-m` message to `git
+merge`/`git commit` for a merge (e.g. `"merge: x into y"`): it gets parsed as a conventional
+  commit with type `merge`, which is not in commitlint's allowed type list, and fails the `ci`
+  commitlint check every time. If you need a custom merge message for clarity, add it as a
+  regular trailing commit instead of putting it in the merge commit itself.
 
 ## History rewrites on `fork/main` (critical — avoid amend + force-push after merge)
 
