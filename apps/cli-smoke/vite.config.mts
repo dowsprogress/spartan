@@ -20,12 +20,12 @@ export default defineConfig({
 		// suite is slow and must not run in parallel (a single local registry is shared).
 		testTimeout: 900_000,
 		hookTimeout: 900_000,
-		// Each smoke cell blocks the event loop for well over 60s doing synchronous npm
-		// install/build work. Vitest 3's worker RPC channel has a hardcoded 60s timeout
-		// (unrelated to testTimeout/hookTimeout above) that isn't currently configurable
-		// (vitest-dev/vitest#6511, #8164). That timeout surfaces as a false-positive
-		// "Unhandled Error" / non-zero exit even when every test passed, so we ignore it
-		// here rather than let a known Vitest bug fail otherwise-green CI runs.
+		// The matrix cells' underlying npm/nx/ng commands now run via async `spawn` (see
+		// utils/workspace.ts) specifically so they no longer block this worker's event loop past
+		// Vitest 3's hardcoded, non-configurable 60s worker-RPC heartbeat timeout
+		// (vitest-dev/vitest#6511, #8164). Keep this as a defense-in-depth backstop: if any future
+		// change reintroduces a long synchronous call, a resulting RPC-timeout "Unhandled Error"
+		// still won't fail an otherwise-green run.
 		dangerouslyIgnoreUnhandledErrors: true,
 		fileParallelism: false,
 		pool: 'forks',

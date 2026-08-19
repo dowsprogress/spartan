@@ -1,5 +1,5 @@
 import { createStyleMap, STYLE_PLACEHOLDER_ALLOWLIST, STYLES } from '@spartan-ng/cli';
-import { execSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -88,13 +88,43 @@ function execEnv(): NodeJS.ProcessEnv {
 	return env;
 }
 
-function run(command: string, cwd: string): void {
+/**
+ * Runs `command` via `spawn` (not `execSync`) and awaits its exit. These commands each take well over
+ * Vitest 3's fixed, non-configurable 60s worker-RPC heartbeat timeout (vitest-dev/vitest#6511, #8164) - a
+ * synchronous `execSync` blocks this worker's whole event loop for the entire child-process duration, so
+ * the worker can never service that heartbeat and Vitest reports a false-positive
+ * `[vitest-worker]: Timeout calling "onTaskUpdate"` failure even though every test passed. Awaiting an
+ * async `spawn` keeps the event loop free while the child runs, so the heartbeat keeps getting through.
+ */
+function run(command: string, cwd: string): Promise<void> {
 	console.log(`[cli-smoke] $ (${cwd}) ${command}`);
-	execSync(command, { cwd, env: execEnv(), stdio: 'inherit' });
+	return new Promise((resolve, reject) => {
+		const child = spawn(command, { cwd, env: execEnv(), stdio: 'inherit', shell: true });
+		child.on('error', reject);
+		child.on('close', (code) => {
+			if (code === 0) resolve();
+			else reject(new Error(`Command failed with exit code ${code}: ${command}`));
+		});
+	});
 }
 
-function capture(command: string, cwd: string): string {
-	return execSync(command, { cwd, env: execEnv(), encoding: 'utf-8' }).trim();
+/** Same rationale as {@link run}, but captures stdout instead of inheriting it. */
+function capture(command: string, cwd: string): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const child = spawn(command, { cwd, env: execEnv(), shell: true });
+		let stdout = '';
+		child.stdout?.on('data', (chunk) => {
+			stdout += chunk;
+		});
+		child.stderr?.on('data', (chunk) => {
+			process.stderr.write(chunk);
+		});
+		child.on('error', reject);
+		child.on('close', (code) => {
+			if (code === 0) resolve(stdout.trim());
+			else reject(new Error(`Command failed with exit code ${code}: ${command}`));
+		});
+	});
 }
 
 /** Tag applied to the spartan-generated nx libraries so the build step can target just them. */
@@ -121,7 +151,7 @@ function assertClassicScaffold(cell: SetupCell, dir: string): void {
 }
 
 /** Scaffold the workspace, pin Tailwind v4, install the CLI, and write components.json. */
-export function prepareWorkspace(cell: SetupCell): CellWorkspace {
+export async function prepareWorkspace(cell: SetupCell): Promise<CellWorkspace> {
 	mkdirSync(TMP_ROOT, { recursive: true });
 	const dir = join(TMP_ROOT, cell.id);
 	rmSync(dir, { recursive: true, force: true });
@@ -137,7 +167,7 @@ export function prepareWorkspace(cell: SetupCell): CellWorkspace {
 		// non-interactive (otherwise it prompts "Will you be using GitHub as your git hosting provider?").
 		app = cell.id;
 		componentsPath = 'libs/ui';
-		run(
+		await run(
 			`npx --yes create-nx-workspace@${NX_VERSION} ${cell.id} --preset=angular-standalone ` +
 				`--style=css --bundler=esbuild --ssr=false --e2eTestRunner=none --unitTestRunner=none ` +
 				`--nxCloud=skip --skipGit --interactive=false --packageManager=pnpm`,
@@ -151,7 +181,7 @@ export function prepareWorkspace(cell: SetupCell): CellWorkspace {
 		// `apps` preset uses composite project references that fail the Angular build (NG4006). It ships a
 		// sample app we ignore: we generate our own `demo` below and build only that + the spartan libs, so
 		// the sample only costs install time, not build time.
-		run(
+		await run(
 			`npx --yes create-nx-workspace@${NX_VERSION} ${cell.id} --preset=angular-monorepo --appName=sample ` +
 				`--style=css --bundler=esbuild --ssr=false --e2eTestRunner=none --unitTestRunner=none ` +
 				`--nxCloud=skip --no-interactive --packageManager=pnpm`,
@@ -160,7 +190,7 @@ export function prepareWorkspace(cell: SetupCell): CellWorkspace {
 	} else {
 		app = cell.id;
 		componentsPath = 'src/app/spartan';
-		run(
+		await run(
 			`npx --yes @angular/cli@${NG_CLI_VERSION} new ${cell.id} --style=css --routing=false --ssr=false ` +
 				`--skip-git --skip-tests --package-manager=pnpm --defaults`,
 			TMP_ROOT,
@@ -177,7 +207,7 @@ export function prepareWorkspace(cell: SetupCell): CellWorkspace {
 	if (cell.workspace === 'nx' && !isStandalone) {
 		// @nx/angular ships with the template; generate our own clean app in the classic layout. The
 		// standalone preset already is the app, so this only applies to the monorepo scaffold.
-		run(
+		await run(
 			`npx nx g @nx/angular:application --name=${app} --directory=apps/${app} --style=css --bundler=esbuild ` +
 				`--ssr=false --routing=false --e2eTestRunner=none --unitTestRunner=none --no-interactive`,
 			dir,
@@ -189,12 +219,12 @@ export function prepareWorkspace(cell: SetupCell): CellWorkspace {
 
 	// Install the locally published CLI (as a real consumer would) together with Tailwind v4 in a
 	// single pass - separate `pnpm add` calls would each re-resolve the lockfile.
-	run(`pnpm add -D @spartan-ng/cli@${registryInfo().version} tailwindcss@4 @tailwindcss/postcss postcss`, dir);
+	await run(`pnpm add -D @spartan-ng/cli@${registryInfo().version} tailwindcss@4 @tailwindcss/postcss postcss`, dir);
 
 	// Record the project set before the spartan generators run so the build step can identify and build
 	// exactly the libraries they add, ignoring the template's sample projects.
 	const baselineProjects =
-		cell.workspace === 'nx' ? (JSON.parse(capture(`npx nx show projects --json`, dir)) as string[]) : undefined;
+		cell.workspace === 'nx' ? (JSON.parse(await capture(`npx nx show projects --json`, dir)) as string[]) : undefined;
 
 	return { cell, dir, app, componentsPath, baselineProjects };
 }
@@ -239,16 +269,16 @@ function writeComponentsJson(dir: string, cell: SetupCell, componentsPath: strin
 }
 
 /** Run `init` then `ui` for each component under test, non-interactively. */
-export function runGenerators(ws: CellWorkspace): void {
+export async function runGenerators(ws: CellWorkspace): Promise<void> {
 	const gen = ws.cell.workspace === 'nx' ? 'npx nx g' : 'npx ng generate';
 	// Tag spartan libs (nx only) so buildWorkspace can build just them, ignoring the template's sample.
 	const tags = ws.cell.workspace === 'nx' ? ` --tags=${SPARTAN_TAG}` : '';
 
-	run(`${gen} @spartan-ng/cli:init --project=${ws.app} --theme=zinc`, ws.dir);
+	await run(`${gen} @spartan-ng/cli:init --project=${ws.app} --theme=zinc`, ws.dir);
 
 	const components = ws.cell.allComponents ? readAllPrimitives() : [...componentsUnderTest];
 	for (const component of components) {
-		run(`${gen} @spartan-ng/cli:ui ${component} --directory=${ws.componentsPath}${tags}`, ws.dir);
+		await run(`${gen} @spartan-ng/cli:ui ${component} --directory=${ws.componentsPath}${tags}`, ws.dir);
 	}
 }
 
@@ -260,9 +290,9 @@ export function runGenerators(ws: CellWorkspace): void {
  * map would break module resolution at load. This is the only coverage that runs the headline
  * command end-to-end as an installed package. nx-only: the generator's remove path is nx-specific.
  */
-export function assertMigrateHelmLibrariesLoads(ws: CellWorkspace): void {
+export async function assertMigrateHelmLibrariesLoads(ws: CellWorkspace): Promise<void> {
 	if (ws.cell.workspace !== 'nx') return;
-	const out = capture(`npx nx g @spartan-ng/cli:migrate-helm-libraries 2>&1`, ws.dir);
+	const out = await capture(`npx nx g @spartan-ng/cli:migrate-helm-libraries 2>&1`, ws.dir);
 	console.log(out);
 	if (!out.includes('No libraries to migrate')) {
 		throw new Error(`Expected migrate-helm-libraries to no-op on a workspace with no spartan libraries, got:\n${out}`);
@@ -284,11 +314,11 @@ function readAllPrimitives(): string[] {
  *
  * Flag casing differs by CLI: Angular wants kebab-case (--auto-fix), nx accepts camelCase (--autoFix).
  */
-export function assertHealthcheckClean(ws: CellWorkspace): void {
+export async function assertHealthcheckClean(ws: CellWorkspace): Promise<void> {
 	const isNx = ws.cell.workspace === 'nx';
 	const gen = isNx ? 'npx nx g' : 'npx ng generate';
 	const flags = isNx ? '--autoFix --skipFormat' : '--auto-fix --skip-format';
-	const out = capture(`${gen} @spartan-ng/cli:healthcheck ${flags} 2>&1`, ws.dir);
+	const out = await capture(`${gen} @spartan-ng/cli:healthcheck ${flags} 2>&1`, ws.dir);
 	console.log(out);
 	// printReport marks a failed check with "[ ✖ ]" (see libs/cli .../healthcheck/utils/reporter.ts).
 	// Ignore the "Dependency Check": it fetches the latest version from the public npm registry and flags
@@ -449,19 +479,19 @@ export function useGeneratedComponents(ws: CellWorkspace): void {
  * useGeneratedComponents) makes the app build compile the generated code through the public alias, so a
  * broken alias/export/template fails here. After the build we assert the theme styles reached the output.
  */
-export function buildWorkspace(ws: CellWorkspace): void {
+export async function buildWorkspace(ws: CellWorkspace): Promise<void> {
 	if (ws.cell.workspace === 'nx') {
 		// Build our app plus the spartan-generated buildable libs (the component libs in buildable cells,
 		// and the ui-helm parent in entrypoint+buildable cells) - the libs the generators added, diffed
 		// against the baseline. The app build compiles the probe, so the generated libs are compiled via
 		// the alias even in non-buildable cells, where they have no build target of their own.
 		const baseline = new Set(ws.baselineProjects ?? []);
-		const buildable: string[] = JSON.parse(capture(`npx nx show projects --with-target build --json`, ws.dir));
+		const buildable: string[] = JSON.parse(await capture(`npx nx show projects --with-target build --json`, ws.dir));
 		const spartanBuildable = buildable.filter((p) => !baseline.has(p));
 		const projects = [ws.app, ...spartanBuildable].join(',');
-		run(`npx nx run-many -t build -p ${projects} --parallel=1`, ws.dir);
+		await run(`npx nx run-many -t build -p ${projects} --parallel=1`, ws.dir);
 	} else {
-		run(`npx ng build`, ws.dir);
+		await run(`npx ng build`, ws.dir);
 	}
 
 	assertStylesEmitted(ws);

@@ -32,22 +32,22 @@ describe('CLI setup matrix', () => {
 	// name the per-cell pattern can anchor to.
 	for (const cell of setupMatrix) {
 		describe(cell.id, () => {
-			it('scaffolds, generates, passes healthcheck, applies the style classes, consumes components, and builds with themed styles', () => {
+			it('scaffolds, generates, passes healthcheck, applies the style classes, consumes components, and builds with themed styles', async () => {
 				if (!affected) {
 					console.log(`[cli-smoke] ${cell.id}: skipped (nothing affecting the CLI changed).`);
 					return;
 				}
-				const ws = prepareWorkspace(cell);
+				const ws = await prepareWorkspace(cell);
 				// Before generating anything: load migrate-helm-libraries as an installed package (it no-ops
 				// on an empty workspace). Guards its deep nx imports against a consumer's stricter exports map.
-				assertMigrateHelmLibrariesLoads(ws);
-				runGenerators(ws);
-				assertHealthcheckClean(ws);
+				await assertMigrateHelmLibrariesLoads(ws);
+				await runGenerators(ws);
+				await assertHealthcheckClean(ws);
 				// Verify the configured style's registry classes replaced the spartan-* placeholders before we
 				// build (the build's themed-CSS check is style-blind - those vars come from the theme).
 				assertStyleClassesApplied(ws);
 				useGeneratedComponents(ws);
-				buildWorkspace(ws);
+				await buildWorkspace(ws);
 				cleanupWorkspace(ws);
 			});
 		});
