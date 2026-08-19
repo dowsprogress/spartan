@@ -53,13 +53,14 @@ hung step blocks the job - and anything that `needs:` it - for up to GitHub's 6-
 no automatic recovery (this happened to `release / verify-libs`). Size new timeouts with headroom
 over observed real duration; never delete the field to silence a legitimate timeout failure.
 
-## Playwright `--with-deps` install needs a retry + per-attempt timeout (see AGENTS.md)
+## Playwright `--with-deps` install: apt timeouts first, retry loop as backstop (see AGENTS.md)
 
-`ci.yml`'s `unit` job and `release.yml`'s `verify-libs` job both wrap
-`pnpm exec playwright install --with-deps chromium` in a `timeout 180 ... ` retry loop (3
-attempts) because the bare command has hung indefinitely on a stuck apt mirror, silently eating
-the whole job timeout. Don't revert to the bare command; copy the retry loop for any new job that
-needs `--with-deps` Chromium.
+`apt` has no default network timeout, so a stalled mirror connection hangs it indefinitely - the
+actual root cause of `ci.yml`'s `unit` and `release.yml`'s `verify-libs` silently eating the whole
+job timeout. Both jobs now set `Acquire::Retries`/`Acquire::http::Timeout`/`Acquire::https::Timeout`
+via an apt.conf.d drop-in right before the install step (apt's own documented fix for this), plus
+keep the existing `timeout 180 ...` retry loop (3 attempts) as a secondary safety net. Don't revert
+either piece; copy both for any new job that needs `--with-deps` Chromium.
 
 ## Cypress e2e retries (see AGENTS.md)
 

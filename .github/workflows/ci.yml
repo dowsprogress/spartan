@@ -113,13 +113,24 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: playwright-${{ runner.os }}-
+      # apt has NO default network timeout: a stalled TCP connection to a mirror blocks apt itself
+      # indefinitely, which is the actual root cause of the Playwright --with-deps install hanging
+      # (observed: zero output for the rest of the job after the InRelease fetch). Acquire::*Timeout
+      # makes apt fail a stalled connection fast and retry against another resolved mirror IP within
+      # a single apt-get invocation, instead of relying on an external `timeout` to kill the whole
+      # process late and blindly. This is apt's own documented mechanism for this, not a workaround.
+      - name: Configure apt network timeouts
+        run: |
+          sudo tee /etc/apt/apt.conf.d/99-ci-network-timeouts > /dev/null <<'EOF'
+          Acquire::Retries "3";
+          Acquire::http::Timeout "15";
+          Acquire::https::Timeout "15";
+          EOF
       - name: Install Playwright Chromium
         # On a cache hit the browser is already present; still run install to pull any missing OS
-        # libraries (--with-deps), which are not part of the cached browser directory. --with-deps
-        # shells out to apt, which occasionally hangs indefinitely on a stuck Ubuntu mirror with zero
-        # output (observed: job ran the full timeout-minutes with nothing after the apt InRelease
-        # fetch). `timeout` bounds each attempt so a hung mirror fails fast and gets retried against a
-        # (likely different/recovered) mirror instead of burning the whole job's timeout budget.
+        # libraries (--with-deps), which are not part of the cached browser directory. The apt
+        # timeout config above is the primary defense against a stuck mirror; this retry loop is a
+        # secondary safety net in case the install still fails after apt's own retries are exhausted.
         # `timeout` only signals the direct child (pnpm), not the orphaned `apt-get` it escalates to
         # via sudo - without cleanup that orphan keeps holding the apt lock, so every subsequent
         # attempt fails instantly with "Could not get lock" instead of getting a clean retry (observed

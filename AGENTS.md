@@ -106,18 +106,27 @@ plain instructions in this file/`instructions.md`, or propose adding a new real 
 - If a job starts legitimately needing more time, raise its `timeout-minutes` explicitly in the
   same commit — never remove the field to "fix" a timeout failure.
 
-## Playwright `--with-deps` install must be retried with a per-attempt timeout
+## Playwright `--with-deps` install: apt timeouts first, retry loop as a backstop
 
 - `pnpm exec playwright install --with-deps chromium` (in `ci.yml`'s `unit` job and
-  `release.yml`'s `verify-libs` job) shells out to `apt` for OS-level Chromium libraries. This has
-  hung indefinitely with zero output on a stuck Ubuntu mirror, consuming the entire job
-  `timeout-minutes` budget for no benefit.
-- Both call sites wrap the install in a bash retry loop: `timeout 180 ... || retry` up to 3
-  attempts. Do not replace this with a bare `pnpm exec playwright install --with-deps chromium`
-  call again — that reintroduces the unbounded-hang failure mode.
-- If you add a new job that also needs `--with-deps` Chromium, copy this retry pattern rather than
-  the bare command, and give the job's `timeout-minutes` headroom for worst-case retries (~9 min:
-  3 x 180s) on top of its normal steps.
+  `release.yml`'s `verify-libs` job) shells out to `apt` for OS-level Chromium libraries. **`apt`
+  has no default network timeout** — a stalled TCP connection to a mirror blocks apt itself
+  indefinitely with zero output, consuming the entire job `timeout-minutes` budget for no benefit
+  (this recurred 3 separate times before the root cause was identified).
+- The root-cause fix is the `Configure apt network timeouts` step immediately before the install
+  step in both jobs: it drops an `/etc/apt/apt.conf.d/` config setting `Acquire::Retries`,
+  `Acquire::http::Timeout`, and `Acquire::https::Timeout`. This makes apt itself detect a stalled
+  connection within ~15s and retry against another mirror IP inside a single `apt-get` call — this
+  is apt's own documented mechanism for exactly this failure mode, not a workaround. Do not remove
+  this step; it is the primary defense.
+- Both call sites also keep a bash retry loop around the install (`timeout 180 ... || retry`, up to
+  3 attempts) as a secondary safety net in case the install still fails after apt's own retries are
+  exhausted. Do not replace either the apt-config step or the retry loop with a bare
+  `pnpm exec playwright install --with-deps chromium` call — that reintroduces the unbounded-hang
+  failure mode.
+- If you add a new job that also needs `--with-deps` Chromium, copy both the `Configure apt network
+  timeouts` step and the retry-loop pattern, and give the job's `timeout-minutes` headroom for
+  worst-case retries (~9 min: 3 x 180s) on top of its normal steps.
 
 ## Cypress e2e flakes: retries are the first line of defense, not infinite
 

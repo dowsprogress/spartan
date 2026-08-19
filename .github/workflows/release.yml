@@ -61,13 +61,23 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: playwright-${{ runner.os }}-
+      # apt has NO default network timeout, which is the actual root cause of the install hanging
+      # (see ci.yml's identical step for the incident this fixes). Acquire::*Timeout makes apt fail a
+      # stalled connection fast and retry against another mirror IP within a single apt-get
+      # invocation - apt's own documented mechanism for this, not a workaround.
+      - name: Configure apt network timeouts
+        run: |
+          sudo tee /etc/apt/apt.conf.d/99-ci-network-timeouts > /dev/null <<'EOF'
+          Acquire::Retries "3";
+          Acquire::http::Timeout "15";
+          Acquire::https::Timeout "15";
+          EOF
       - name: Install Playwright Chromium
-        # --with-deps shells out to apt, which occasionally hangs indefinitely on a stuck Ubuntu
-        # mirror with zero output. `timeout` bounds each attempt so a hung mirror fails fast and gets
-        # retried instead of burning the whole job's timeout budget (see ci.yml's identical step for
-        # the incident this fixes). `timeout` only signals the direct child, not the orphaned
-        # `apt-get` it escalates to via sudo, so clear the lock/kill any leftover apt-get before
-        # retrying - otherwise every retry fails instantly with "Could not get lock" instead of
+        # --with-deps shells out to apt. The apt timeout config above is the primary defense against
+        # a stuck mirror; this retry loop is a secondary safety net in case the install still fails
+        # after apt's own retries are exhausted. `timeout` only signals the direct child, not the
+        # orphaned `apt-get` it escalates to via sudo, so clear the lock/kill any leftover apt-get
+        # before retrying - otherwise every retry fails instantly with "Could not get lock" instead of
         # getting a clean attempt.
         run: |
           cleanup_stale_apt() {
