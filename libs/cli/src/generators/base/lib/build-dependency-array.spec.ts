@@ -3,7 +3,7 @@ import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { valid } from 'semver';
 import { getCliPackageVersion } from '../../../utils/version-utils';
 import type { HlmBaseGeneratorSchema } from '../schema';
-import { buildDependencyArray } from './build-dependency-array';
+import { buildDependencyArray, buildDevDependencyArray } from './build-dependency-array';
 
 describe('buildDependencyArray', () => {
 	let tree: Tree;
@@ -68,6 +68,18 @@ describe('buildDependencyArray', () => {
 		const deps = buildDependencyArray(tree, { ...carouselOptions, name: 'button', peerDependencies: {} }, '^21.0.0');
 
 		expect(deps).not.toHaveProperty('embla-carousel-angular');
+	});
+
+	it('adds @types/prismjs to devDependencies for the message component', () => {
+		const deps = buildDevDependencyArray({ ...carouselOptions, name: 'message', peerDependencies: {} });
+
+		expect(deps).toHaveProperty('@types/prismjs');
+	});
+
+	it('does not add @types/prismjs for primitives that do not use prismjs', () => {
+		const deps = buildDevDependencyArray({ ...carouselOptions, name: 'button', peerDependencies: {} });
+
+		expect(deps).not.toHaveProperty('@types/prismjs');
 	});
 
 	// When the workspace doesn't pin @spartan-ng/cli, brain must fall back to the running cli version rather
