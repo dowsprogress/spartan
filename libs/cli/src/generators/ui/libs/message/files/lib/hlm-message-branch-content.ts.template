@@ -1,0 +1,23 @@
+import { Directive, inject, input } from '@angular/core';
+import { classes } from '<%- importAlias %>/utils';
+import { HlmMessageBranch } from './hlm-message-branch';
+
+@Directive({
+	selector: '[hlmMessageBranchContent],hlm-message-branch-content',
+	host: {
+		'data-slot': 'message-branch-content',
+		'[class.hidden]': '_isHidden()',
+	},
+})
+export class HlmMessageBranchContent {
+	private readonly _branch = inject(HlmMessageBranch);
+
+	/** 0-based index of the branch this content represents. */
+	public readonly index = input.required<number>();
+
+	protected readonly _isHidden = () => this._branch.currentBranch() !== this.index();
+
+	constructor() {
+		classes(() => 'spartan-message-branch-content grid gap-2 overflow-hidden');
+	}
+}

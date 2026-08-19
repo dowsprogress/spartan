@@ -22,6 +22,7 @@ module.exports = {
 				'calendar',
 				'card',
 				'carousel',
+				'chat',
 				'checkbox',
 				'cli',
 				'collapsible',

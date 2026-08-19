@@ -1,8 +1,8 @@
 import { Component, OnDestroy, signal } from '@angular/core';
 import { HlmBubbleImports } from '@spartan-ng/helm/bubble';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmChatImports } from '@spartan-ng/helm/chat';
 import { HlmConversationImports } from '@spartan-ng/helm/conversation';
-import { HlmMessageImports } from '@spartan-ng/helm/message';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -52,7 +52,7 @@ const REPLAY_INTERVAL_MS = 1200;
 		HlmConversationImports,
 		HlmButtonImports,
 		HlmBubbleImports,
-		HlmMessageImports,
+		HlmChatImports,
 	],
 	// The panel width is 50% wider than a typical `max-w-2xl` chat pane (42rem -> 63rem), to more
 	// accurately simulate how Conversation behaves at a wider real browser viewport.
@@ -62,8 +62,8 @@ const REPLAY_INTERVAL_MS = 1200;
 				<ng-scrollbar hlm appearance="compact" class="h-full w-full">
 					<div hlmConversationContent>
 						@for (message of _visibleMessages(); track $index) {
-							<div hlmMessage [align]="message.from === 'user' ? 'end' : 'start'">
-								<div hlmMessageContent>
+							<div hlmChat [align]="message.from === 'user' ? 'end' : 'start'">
+								<div hlmChatContent>
 									@if (message.from === 'user') {
 										<div hlmBubble variant="secondary">
 											<div hlmBubbleContent>{{ message.text }}</div>

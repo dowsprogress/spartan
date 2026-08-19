@@ -14,6 +14,7 @@ export type Primitive =
 	| 'calendar'
 	| 'card'
 	| 'carousel'
+	| 'chat'
 	| 'checkbox'
 	| 'collapsible'
 	| 'combobox'

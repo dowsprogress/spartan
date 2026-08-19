@@ -1,0 +1,22 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { HlmButton, provideBrnButtonConfig } from '<%- importAlias %>/button';
+import { HlmMessageBranch } from './hlm-message-branch';
+
+@Component({
+	selector: 'button[hlm-message-branch-previous], button[hlmMessageBranchPrevious]',
+	providers: [provideBrnButtonConfig({ variant: 'ghost', size: 'icon-sm' })],
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	hostDirectives: [{ directive: HlmButton, inputs: ['variant', 'size'] }],
+	host: {
+		type: 'button',
+		'data-slot': 'message-branch-previous',
+		'(click)': '_branch.goToPrevious()',
+	},
+	template: `
+		<ng-content />
+		<span class="sr-only">Previous branch</span>
+	`,
+})
+export class HlmMessageBranchPrevious {
+	protected readonly _branch = inject(HlmMessageBranch);
+}

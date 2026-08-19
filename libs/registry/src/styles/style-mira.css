@@ -585,28 +585,28 @@
 		@apply min-w-0;
 	}
 
-	/* MARK: Message */
-	.spartan-message {
+	/* MARK: Chat */
+	.spartan-chat {
 		@apply gap-1.5 text-xs/relaxed;
 	}
 
-	.spartan-message-group {
+	.spartan-chat-group {
 		@apply gap-1.5;
 	}
 
-	.spartan-message-avatar {
+	.spartan-chat-avatar {
 		@apply bg-muted min-w-7 rounded-full;
 	}
 
-	.spartan-message-content {
+	.spartan-chat-content {
 		@apply gap-2;
 	}
 
-	.spartan-message-header {
+	.spartan-chat-header {
 		@apply text-muted-foreground px-2.5 text-[0.625rem] font-medium;
 	}
 
-	.spartan-message-footer {
+	.spartan-chat-footer {
 		@apply text-muted-foreground px-2.5 text-[0.625rem] font-medium;
 	}
 

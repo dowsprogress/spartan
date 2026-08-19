@@ -1,0 +1,20 @@
+import { Directive } from '@angular/core';
+import { classes } from '@spartan-ng/helm/utils';
+
+@Directive({
+	selector: '[hlmChatContent],hlm-chat-content',
+	host: { 'data-slot': 'chat-content' },
+})
+export class HlmChatContent {
+	constructor() {
+		classes(
+			() =>
+				// `grid-rows-subgrid` (spanning the parent chat's 2 row tracks) lets this content's own
+				// children - the bubble in row 1, an optional footer in row 2 - size independently within
+				// those tracks. That's what lets `HlmChatAvatar`'s `row-start-1` + `self-end` align
+				// exactly to the bubble's bottom, regardless of whether/how tall a footer is, with no
+				// hardcoded offset needed.
+				'spartan-chat-content col-start-2 row-span-2 row-start-1 grid min-w-0 grid-rows-[subgrid] wrap-break-word group-data-[align=end]/chat:col-start-1 group-data-[align=end]/chat:*:data-slot:justify-self-end',
+		);
+	}
+}

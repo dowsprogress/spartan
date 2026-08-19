@@ -1,27 +1,23 @@
 import { Directive, input } from '@angular/core';
 import { classes } from '<%- importAlias %>/utils';
 
-export type MessageAlign = 'start' | 'end';
+/** Mirrors `UIMessage['role']` from the `ai` package without taking a dependency on it. */
+export type MessageFrom = 'user' | 'assistant' | 'system';
 
 @Directive({
 	selector: '[hlmMessage],hlm-message',
 	host: {
 		'data-slot': 'message',
-		'[attr.data-align]': 'align()',
-		// Prevent the legacy HTML `align` attribute from forcing text-align.
-		'[attr.align]': 'null',
+		'[attr.data-from]': 'from()',
 	},
 })
 export class HlmMessage {
-	public readonly align = input<MessageAlign>('start');
+	public readonly from = input.required<MessageFrom>();
 
 	constructor() {
 		classes(
 			() =>
-				// 2 explicit row tracks (bubble row, optional footer row) let `HlmMessageContent` opt
-				// into `grid-rows-subgrid` so the avatar can align to just the bubble row - see its
-				// class comment for why.
-				'spartan-message group/message relative grid w-full min-w-0 grid-cols-[auto_1fr] grid-rows-[auto_auto] data-[align=end]:grid-cols-[1fr_auto]',
+				'spartan-message group/message flex w-full max-w-[95%] min-w-0 flex-col gap-2 data-[from=user]:ms-auto data-[from=user]:justify-end',
 		);
 	}
 }

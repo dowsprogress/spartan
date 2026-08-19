@@ -25,6 +25,7 @@ export const KNOWN_COMPONENTS: string[] = [
 	'calendar',
 	'card',
 	'carousel',
+	'chat',
 	'checkbox',
 	'collapsible',
 	'combobox',

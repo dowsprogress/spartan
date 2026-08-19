@@ -2167,6 +2167,52 @@ exports[`generate-ui-docs executor > produces stable output 1`] = `
       },
     },
   },
+  "chat": {
+    "helm": {
+      "HlmChat": {
+        "inputs": [
+          {
+            "name": "align",
+            "required": false,
+            "type": "ChatAlign",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChat],hlm-chat",
+      },
+      "HlmChatAvatar": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatAvatar],hlm-chat-avatar",
+      },
+      "HlmChatContent": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatContent],hlm-chat-content",
+      },
+      "HlmChatFooter": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatFooter],hlm-chat-footer",
+      },
+      "HlmChatGroup": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatGroup],hlm-chat-group",
+      },
+      "HlmChatHeader": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmChatHeader],hlm-chat-header",
+      },
+    },
+  },
   "checkbox": {
     "brain": {
       "BrnCheckbox": {
@@ -5792,20 +5838,159 @@ exports[`generate-ui-docs executor > produces stable output 1`] = `
       "HlmMessage": {
         "inputs": [
           {
-            "name": "align",
-            "required": false,
-            "type": "MessageAlign",
+            "name": "from",
+            "required": true,
+            "type": "MessageFrom",
           },
         ],
         "models": [],
         "outputs": [],
         "selector": "[hlmMessage],hlm-message",
       },
-      "HlmMessageAvatar": {
+      "HlmMessageAction": {
+        "inputs": [
+          {
+            "name": "label",
+            "required": false,
+            "type": "string",
+          },
+          {
+            "name": "tooltip",
+            "required": false,
+            "type": "string",
+          },
+          {
+            "name": "variant",
+            "required": false,
+            "type": "ButtonVariants['variant']",
+          },
+          {
+            "name": "size",
+            "required": false,
+            "type": "ButtonVariants['size']",
+          },
+          {
+            "name": "position",
+            "required": false,
+            "type": "BrnTooltipPosition",
+          },
+          {
+            "name": "hideDelay",
+            "required": false,
+            "type": "number",
+          },
+          {
+            "name": "showDelay",
+            "required": false,
+            "type": "number",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "button[hlm-message-action], button[hlmMessageAction]",
+      },
+      "HlmMessageActions": {
         "inputs": [],
         "models": [],
         "outputs": [],
-        "selector": "[hlmMessageAvatar],hlm-message-avatar",
+        "selector": "[hlmMessageActions],hlm-message-actions",
+      },
+      "HlmMessageBranch": {
+        "inputs": [
+          {
+            "name": "totalBranches",
+            "required": false,
+            "type": "number",
+          },
+          {
+            "name": "defaultBranch",
+            "required": false,
+            "type": "number",
+          },
+        ],
+        "models": [],
+        "outputs": [
+          {
+            "name": "branchChange",
+            "type": "number",
+          },
+        ],
+        "selector": "[hlmMessageBranch],hlm-message-branch",
+      },
+      "HlmMessageBranchContent": {
+        "inputs": [
+          {
+            "name": "index",
+            "required": true,
+            "type": "number",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmMessageBranchContent],hlm-message-branch-content",
+      },
+      "HlmMessageBranchNext": {
+        "inputs": [
+          {
+            "name": "variant",
+            "required": false,
+            "type": "ButtonVariants['variant']",
+          },
+          {
+            "name": "size",
+            "required": false,
+            "type": "ButtonVariants['size']",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "button[hlm-message-branch-next], button[hlmMessageBranchNext]",
+      },
+      "HlmMessageBranchPage": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "div[hlm-message-branch-page], div[hlmMessageBranchPage]",
+      },
+      "HlmMessageBranchPrevious": {
+        "inputs": [
+          {
+            "name": "variant",
+            "required": false,
+            "type": "ButtonVariants['variant']",
+          },
+          {
+            "name": "size",
+            "required": false,
+            "type": "ButtonVariants['size']",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "button[hlm-message-branch-previous], button[hlmMessageBranchPrevious]",
+      },
+      "HlmMessageBranchSelector": {
+        "inputs": [],
+        "models": [],
+        "outputs": [],
+        "selector": "[hlmMessageBranchSelector],hlm-message-branch-selector",
+      },
+      "HlmMessageCodeBlock": {
+        "inputs": [
+          {
+            "name": "code",
+            "required": true,
+            "type": "string",
+          },
+          {
+            "name": "language",
+            "required": false,
+            "type": "string",
+          },
+        ],
+        "models": [],
+        "outputs": [],
+        "selector": "div[hlm-message-code-block], div[hlmMessageCodeBlock]",
       },
       "HlmMessageContent": {
         "inputs": [],
@@ -5813,23 +5998,35 @@ exports[`generate-ui-docs executor > produces stable output 1`] = `
         "outputs": [],
         "selector": "[hlmMessageContent],hlm-message-content",
       },
-      "HlmMessageFooter": {
-        "inputs": [],
+      "HlmMessageResponse": {
+        "inputs": [
+          {
+            "name": "content",
+            "required": true,
+            "type": "string",
+          },
+        ],
         "models": [],
         "outputs": [],
-        "selector": "[hlmMessageFooter],hlm-message-footer",
+        "selector": "div[hlm-message-response], div[hlmMessageResponse]",
       },
-      "HlmMessageGroup": {
-        "inputs": [],
+      "HlmMessageTable": {
+        "inputs": [
+          {
+            "name": "data",
+            "required": true,
+            "type": "MessageTableData",
+          },
+        ],
         "models": [],
         "outputs": [],
-        "selector": "[hlmMessageGroup],hlm-message-group",
+        "selector": "div[hlm-message-table], div[hlmMessageTable]",
       },
-      "HlmMessageHeader": {
+      "HlmMessageToolbar": {
         "inputs": [],
         "models": [],
         "outputs": [],
-        "selector": "[hlmMessageHeader],hlm-message-header",
+        "selector": "[hlmMessageToolbar],hlm-message-toolbar",
       },
     },
   },

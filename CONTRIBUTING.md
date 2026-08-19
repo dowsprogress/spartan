@@ -193,6 +193,7 @@ The following is the list of supported scopes:
 - **calendar**
 - **card**
 - **carousel**
+- **chat**
 - **checkbox**
 - **collapsible**
 - **combobox**

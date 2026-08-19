@@ -1,0 +1,12 @@
+import { Directive } from '@angular/core';
+import { classes } from '<%- importAlias %>/utils';
+
+@Directive({
+	selector: '[hlmMessageToolbar],hlm-message-toolbar',
+	host: { 'data-slot': 'message-toolbar' },
+})
+export class HlmMessageToolbar {
+	constructor() {
+		classes(() => 'spartan-message-toolbar mt-4 flex w-full items-center justify-between gap-4');
+	}
+}

@@ -1,0 +1,22 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { HlmButton, provideBrnButtonConfig } from '@spartan-ng/helm/button';
+import { HlmMessageBranch } from './hlm-message-branch';
+
+@Component({
+	selector: 'button[hlm-message-branch-next], button[hlmMessageBranchNext]',
+	providers: [provideBrnButtonConfig({ variant: 'ghost', size: 'icon-sm' })],
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	hostDirectives: [{ directive: HlmButton, inputs: ['variant', 'size'] }],
+	host: {
+		type: 'button',
+		'data-slot': 'message-branch-next',
+		'(click)': '_branch.goToNext()',
+	},
+	template: `
+		<ng-content />
+		<span class="sr-only">Next branch</span>
+	`,
+})
+export class HlmMessageBranchNext {
+	protected readonly _branch = inject(HlmMessageBranch);
+}

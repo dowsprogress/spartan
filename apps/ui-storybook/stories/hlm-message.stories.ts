@@ -1,166 +1,190 @@
-import { Component, OnDestroy, signal } from '@angular/core';
-import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
-import { HlmBubbleImports } from '@spartan-ng/helm/bubble';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { Component } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+	lucideChevronLeft,
+	lucideChevronRight,
+	lucideCopy,
+	lucideRefreshCw,
+	lucideThumbsDown,
+	lucideThumbsUp,
+} from '@ng-icons/lucide';
 import { HlmConversationImports } from '@spartan-ng/helm/conversation';
-import { HlmMarkerImports } from '@spartan-ng/helm/marker';
 import { HlmMessageImports } from '@spartan-ng/helm/message';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
+// Three regenerated-response branches for the same turn - mirrors the AI Elements recipe where
+// `MessageBranch` lets a user tab through multiple candidate answers for the last assistant turn.
+const HOOKS_BRANCHES = [
+	`# What are React Hooks?
+
+Hooks let you use state and other React features without writing a class.
+
+- **useState** - for managing component state
+- **useEffect** - for side effects like data fetching
+- **useContext** - for consuming context values
+
+Here's a simple example:
+
+\`\`\`jsx
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      Clicked {count} times
+    </button>
+  );
+}
+\`\`\`
+
+| Hook | Purpose |
+| --- | --- |
+| useState | Add state to components |
+| useEffect | Handle side effects |
+| useContext | Access context values |
+
+The beauty of hooks is that they let you reuse stateful logic without changing your component hierarchy.`,
+	`## React Hooks, in short
+
+Hooks are functions that let function components opt into React features that used to require a class.
+
+### Rules of hooks
+
+1. Call them **only at the top level** of a component or another hook.
+2. Never call them conditionally or inside loops.
+3. Name your own hooks starting with \`use\`.
+
+\`\`\`jsx
+function useWindowWidth() {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  return width;
+}
+\`\`\`
+
+This custom hook wraps \`useState\` + \`useEffect\` into a single reusable unit.`,
+	`## Why hooks over classes?
+
+Classes require binding \`this\`, verbose lifecycle methods, and make it hard to reuse stateful logic between components. Hooks solve all three.
+
+### Key advantages
+
+- No \`this\` binding gymnastics
+- Related logic stays together instead of being split across \`componentDidMount\`/\`componentDidUpdate\`/\`componentWillUnmount\`
+- Stateful logic is trivially extractable into custom hooks and shared across components
+
+\`\`\`jsx
+// Before: a class with lifecycle methods
+class Timer extends React.Component {
+  componentDidMount() { this.id = setInterval(this.tick, 1000); }
+  componentWillUnmount() { clearInterval(this.id); }
+}
+
+// After: a hook
+function useTimer() {
+  useEffect(() => {
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+}
+\`\`\`
+
+| Approach | Lines of boilerplate | Reusable? |
+| --- | --- | --- |
+| Class lifecycle methods | High | No |
+| Custom hook | Low | Yes |`,
+];
+
 const meta: Meta = {
-	title: 'Message',
+	title: 'AI Elements/Message',
 	tags: ['autodocs'],
 };
 
 export default meta;
 type Story = StoryObj;
 
-type MessageStepKind = 'bubble' | 'bubbleFooter' | 'bubbleGroup' | 'typing';
-
-interface MessageBubble {
-	variant?: 'muted';
-	text: string;
-	reaction?: string;
-}
-
-interface MessageStep {
-	kind: MessageStepKind;
-	align: 'start' | 'end';
-	avatarFallback?: string;
-	text?: string;
-	footer?: string;
-	bubbles?: MessageBubble[];
-}
-
-// Mirrors the AI Elements Message recipe's richer feature set (avatars, bubble groups,
-// reactions, delivery footers, a typing indicator) composed inside the real Conversation
-// container. Message is always the child turn; Conversation is the scrollable parent that hosts
-// it (see the dedicated `AI Elements/Conversation` story for Conversation's own scroll/auto-stick
-// behavior in isolation).
-const SCRIPT: MessageStep[] = [
-	{ kind: 'bubble', align: 'end', avatarFallback: 'ME', text: 'Deploying to prod real quick.' },
-	{ kind: 'bubble', align: 'start', avatarFallback: 'R', text: "It's 4:55 PM. On a Friday." },
-	{ kind: 'bubbleFooter', align: 'end', avatarFallback: 'ME', text: "It's a one-line change.", footer: 'Delivered' },
-	{
-		kind: 'bubbleGroup',
-		align: 'start',
-		avatarFallback: 'R',
-		bubbles: [
-			{ variant: 'muted', text: "It's always a one-line change 😭." },
-			{ variant: 'muted', text: 'Alright, let me take a look.', reaction: '👍' },
-		],
-	},
-	{ kind: 'bubble', align: 'end', avatarFallback: 'ME', text: 'Appreciate it, thanks!' },
-	{ kind: 'bubble', align: 'start', avatarFallback: 'R', text: 'Found it, pushing the fix now.' },
-	{ kind: 'bubbleFooter', align: 'start', avatarFallback: 'R', text: 'Should be live in a minute.', footer: 'Sent' },
-	{ kind: 'bubble', align: 'end', avatarFallback: 'ME', text: "You're a lifesaver." },
-	{ kind: 'typing', align: 'start', avatarFallback: 'R' },
-];
-
-const REPLAY_INTERVAL_MS = 1200;
-
+// Angular port of AI Elements' `Message` suite (https://elements.ai-sdk.dev/components/message):
+// `Message`/`MessageContent` (the bubble), `MessageActions`/`MessageAction` (per-turn actions with
+// an optional tooltip), `MessageBranch` and its family (branch/tab navigation between multiple
+// regenerated responses), `MessageToolbar`, and `MessageResponse` (Markdown rendering with
+// syntax-highlighted code blocks and GFM tables, built on `marked` + `prismjs`). Hosted inside
+// `hlmConversation`, matching the bordered scroll container used in the real recipe. The user
+// turn's bubble reuses `HlmBubble`'s `secondary` grey token so it matches the `Conversation`/
+// `Bubble` stories exactly.
 @Component({
 	selector: 'spartan-message-demo',
-	imports: [
-		NgScrollbarModule,
-		HlmScrollAreaImports,
-		HlmConversationImports,
-		HlmButtonImports,
-		HlmBubbleImports,
-		HlmAvatarImports,
-		HlmMarkerImports,
-		HlmMessageImports,
+	imports: [NgIcon, NgScrollbarModule, HlmScrollAreaImports, HlmConversationImports, HlmMessageImports],
+	providers: [
+		provideIcons({
+			lucideChevronLeft,
+			lucideChevronRight,
+			lucideCopy,
+			lucideRefreshCw,
+			lucideThumbsDown,
+			lucideThumbsUp,
+		}),
 	],
 	template: `
-		<div class="flex w-full max-w-sm flex-col gap-3">
-			<div hlmConversation class="h-[70vh] rounded-lg border">
-				<ng-scrollbar hlm appearance="compact" class="h-full w-full">
-					<div hlmConversationContent class="p-4">
-						@for (step of _visibleSteps(); track $index) {
-							@if (step.kind === 'typing') {
-								<div hlmMarker role="status">
-									<span hlmMarkerContent class="shimmer">
-										<span class="font-medium">Oliver</span>
-										is typing...
-									</span>
-								</div>
-							} @else {
-								<div hlmMessage [align]="step.align">
-									<div hlmMessageAvatar>
-										<hlm-avatar>
-											<span hlmAvatarFallback>{{ step.avatarFallback }}</span>
-										</hlm-avatar>
-									</div>
+		<div hlmConversation class="h-[70vh] w-full max-w-2xl rounded-lg border">
+			<ng-scrollbar hlm appearance="compact" class="h-full w-full">
+				<div hlmConversationContent>
+					<div hlmMessage from="user">
+						<div hlmMessageContent>Can you explain React hooks with an example?</div>
+					</div>
+
+					<div hlmMessage from="assistant">
+						<div hlmMessageBranch [totalBranches]="branches.length" [defaultBranch]="0">
+							@for (branch of branches; track $index) {
+								<div hlmMessageBranchContent [index]="$index">
 									<div hlmMessageContent>
-										@switch (step.kind) {
-											@case ('bubbleGroup') {
-												<div hlmBubbleGroup>
-													@for (bubble of step.bubbles; track $index) {
-														<div hlmBubble [variant]="bubble.variant ?? 'default'">
-															<div hlmBubbleContent>{{ bubble.text }}</div>
-															@if (bubble.reaction) {
-																<div hlmBubbleReactions role="img" [attr.aria-label]="'Reaction: thumbs up'">
-																	<span>{{ bubble.reaction }}</span>
-																</div>
-															}
-														</div>
-													}
-												</div>
-											}
-											@default {
-												<div hlmBubble [variant]="step.align === 'start' ? 'muted' : 'default'">
-													<div hlmBubbleContent>{{ step.text }}</div>
-												</div>
-												@if (step.kind === 'bubbleFooter') {
-													<div hlmMessageFooter>{{ step.footer }}</div>
-												}
-											}
-										}
+										<div hlmMessageResponse [content]="branch"></div>
 									</div>
 								</div>
 							}
-						}
+
+							<div hlmMessageToolbar>
+								<div hlmMessageBranchSelector>
+									<button hlmMessageBranchPrevious>
+										<ng-icon name="lucideChevronLeft" />
+									</button>
+									<div hlmMessageBranchPage></div>
+									<button hlmMessageBranchNext>
+										<ng-icon name="lucideChevronRight" />
+									</button>
+								</div>
+
+								<div hlmMessageActions>
+									<button hlmMessageAction tooltip="Regenerate response">
+										<ng-icon name="lucideRefreshCw" />
+									</button>
+									<button hlmMessageAction tooltip="Like this response">
+										<ng-icon name="lucideThumbsUp" />
+									</button>
+									<button hlmMessageAction tooltip="Dislike this response">
+										<ng-icon name="lucideThumbsDown" />
+									</button>
+									<button hlmMessageAction tooltip="Copy to clipboard">
+										<ng-icon name="lucideCopy" />
+									</button>
+								</div>
+							</div>
+						</div>
 					</div>
-				</ng-scrollbar>
-				<button hlmConversationScrollButton aria-label="Scroll to bottom"></button>
-			</div>
-			<button hlmBtn variant="outline" size="sm" type="button" (click)="replay()">Replay</button>
+				</div>
+			</ng-scrollbar>
 		</div>
 	`,
 })
-class MessageDemo implements OnDestroy {
-	protected readonly _visibleSteps = signal<MessageStep[]>([]);
-
-	private _timer?: ReturnType<typeof setInterval>;
-
-	constructor() {
-		this.replay();
-	}
-
-	ngOnDestroy(): void {
-		clearInterval(this._timer);
-	}
-
-	// Reveals one turn at a time, like turns arriving in a live conversation, instead of
-	// rendering the whole script at once - this drives Conversation's stick-to-bottom
-	// auto-scroll and scroll-button behavior in the demo below, matching the
-	// `AI Elements/Conversation` story's interaction pattern.
-	protected replay(): void {
-		clearInterval(this._timer);
-		this._visibleSteps.set([]);
-
-		let index = 0;
-		this._timer = setInterval(() => {
-			this._visibleSteps.update((steps) => [...steps, SCRIPT[index]]);
-			index++;
-
-			if (index >= SCRIPT.length) {
-				clearInterval(this._timer);
-			}
-		}, REPLAY_INTERVAL_MS);
-	}
+class MessageDemo {
+	protected readonly branches = HOOKS_BRANCHES;
 }
 
 export const Default: Story = {
