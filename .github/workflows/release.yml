@@ -65,8 +65,16 @@ jobs:
         # --with-deps shells out to apt, which occasionally hangs indefinitely on a stuck Ubuntu
         # mirror with zero output. `timeout` bounds each attempt so a hung mirror fails fast and gets
         # retried instead of burning the whole job's timeout budget (see ci.yml's identical step for
-        # the incident this fixes).
+        # the incident this fixes). `timeout` only signals the direct child, not the orphaned
+        # `apt-get` it escalates to via sudo, so clear the lock/kill any leftover apt-get before
+        # retrying - otherwise every retry fails instantly with "Could not get lock" instead of
+        # getting a clean attempt.
         run: |
+          cleanup_stale_apt() {
+            sudo pkill -9 -f apt-get 2>/dev/null || true
+            sudo rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend \
+              /var/cache/apt/archives/lock 2>/dev/null || true
+          }
           attempt=1
           until timeout 180 pnpm exec playwright install --with-deps chromium; do
             if [ "$attempt" -ge 3 ]; then
@@ -74,6 +82,7 @@ jobs:
               exit 1
             fi
             echo "::warning::playwright install --with-deps attempt $attempt failed or hung past 180s; retrying"
+            cleanup_stale_apt
             attempt=$((attempt + 1))
             sleep 10
           done

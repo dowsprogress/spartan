@@ -120,7 +120,17 @@ jobs:
         # output (observed: job ran the full timeout-minutes with nothing after the apt InRelease
         # fetch). `timeout` bounds each attempt so a hung mirror fails fast and gets retried against a
         # (likely different/recovered) mirror instead of burning the whole job's timeout budget.
+        # `timeout` only signals the direct child (pnpm), not the orphaned `apt-get` it escalates to
+        # via sudo - without cleanup that orphan keeps holding the apt lock, so every subsequent
+        # attempt fails instantly with "Could not get lock" instead of getting a clean retry (observed
+        # in the run this fix addresses). Clear the lock files and kill any leftover apt-get before
+        # each retry so it actually gets a fresh attempt.
         run: |
+          cleanup_stale_apt() {
+            sudo pkill -9 -f apt-get 2>/dev/null || true
+            sudo rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend \
+              /var/cache/apt/archives/lock 2>/dev/null || true
+          }
           attempt=1
           until timeout 180 pnpm exec playwright install --with-deps chromium; do
             if [ "$attempt" -ge 3 ]; then
@@ -128,6 +138,7 @@ jobs:
               exit 1
             fi
             echo "::warning::playwright install --with-deps attempt $attempt failed or hung past 180s; retrying"
+            cleanup_stale_apt
             attempt=$((attempt + 1))
             sleep 10
           done
