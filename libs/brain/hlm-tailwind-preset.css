@@ -102,8 +102,15 @@
 	--color-muted: var(--muted);
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-secondary: var(--secondary);
+	--color-secondary-hover: var(--secondary-hover, color-mix(in oklab, var(--secondary) 80%, transparent));
+	--color-secondary-active: var(--secondary-active, color-mix(in oklab, var(--secondary) 70%, transparent));
 	--color-primary-foreground: var(--primary-foreground);
 	--color-primary: var(--primary);
+	--color-primary-hover: var(--primary-hover, color-mix(in oklab, var(--primary) 80%, transparent));
+	--color-primary-active: var(--primary-active, color-mix(in oklab, var(--primary) 70%, transparent));
+	--color-link: var(--link, var(--primary));
+	--color-link-hover: var(--link-hover, color-mix(in oklab, var(--primary) 80%, transparent));
+	--color-placeholder: var(--placeholder, var(--muted-foreground));
 	--color-popover-foreground: var(--popover-foreground);
 	--color-popover: var(--popover);
 	--color-card-foreground: var(--card-foreground);
